@@ -11,7 +11,7 @@ from pyraknet.bitstream import BitStream, c_bit
 
 VAR_CHARS = r"[^ \t\[\]]+"
 BIT = r"(BIT[0-7])?"
-TYPES = "bytes", "string", "wstring", "char_t", "wchar_t", "float", "double", "s8", "u8", "s16", "u16", "s32", "u32", "s64", "u64"
+TYPES = "bytes", "string", "wstring", "char", "wchar", "float", "double", "s8", "u8", "s16", "u16", "s32", "u32", "s64", "u64"
 TYPES_RE = "("+"|".join(TYPES)+")"
 
 DEFINITION_SYNTAX = re.compile(r"""^
@@ -141,14 +141,8 @@ class StructParser:
 					type_ = str, 1
 				elif	def_["type"] == "wstring":
 					type_ = str, 2
-				if def_["type"] == "char_t":
-					type_ = ctypes.c_char
-				elif def_["type"] == "wchar_t":
-					type_ = ctypes.c_wchar
-				elif def_["type"] == "float":
-					type_ = ctypes.c_float
-				elif def_["type"] == "double":
-					type_ = ctypes.c_double
+				if def_["type"] in ("char", "wchar", "float", "double"):
+					type_ = vars(ctypes)["c_"+def_["type"]]
 				# the rest of types are in the format (s|u)<bitlength>
 				elif def_["type"].startswith("s"):
 					type_ = vars(ctypes)["c_int"+def_["type"][1:]]
@@ -209,7 +203,7 @@ class StructParser:
 				globals_ = {}
 				globals_["__builtins__"] = {}
 				globals_.update(self._variables)
-				assert eval(str(value)+" "+expression, globals_) # definitely not safe, fwiw
+				assert eval(str(value)+" "+expression, globals_), (value, expression) # definitely not safe, fwiw
 			except AssertionError:
 				print("ASSERTION ERROR:", str(value), "IS NOT", expression)
 				print("DEFINITION INFO:", def_.description)
