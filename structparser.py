@@ -3,7 +3,6 @@ Module for parsing binary data into structs.
 """
 import argparse
 import ctypes
-import math
 import re
 from collections import namedtuple
 
@@ -15,23 +14,25 @@ TYPES = "bytes", "string", "wstring", "char", "wchar", "float", "double", "s8", 
 TYPES_RE = "("+"|".join(TYPES)+")"
 
 DEFINITION_SYNTAX = re.compile(r"""^
- (?P<indent>\t*)                                     # Indentation
- ((?P<var_assign>"""+VAR_CHARS+r""")=)?              # Assign this struct a variable so the value can be back-referenced later
- \[(                                                 # Start of struct information
- (                                                   # A literal struct definition, as opposed to a variable back-reference
-	(A:(?P<address>0x[0-9a-fA-F]*"""+BIT+r"""),)?      # Fixed address information, in hexadecimal. This is unnecessary for structs that directly follow the previous struct and is rarely used.
-	(L:(?P<length>[0-9]*"""+BIT+r"""))                 # The length of the struct, in decimal
+ (?P<indent>\t*)                                    # Indentation
+ ((?P<var_assign>"""+VAR_CHARS+r""")=)?             # Assign this struct a variable so the value can be back-referenced later
+ \[(                                                # Start of struct information
+ (                                                  # A literal struct definition
+	(A:(?P<address>0x[0-9a-fA-F]*"""+BIT+r"""),)?     # Fixed address information, in hexadecimal. This is unnecessary for structs that directly follow the previous struct and is rarely used.
+	(L:(?P<length>[0-9]*"""+BIT+r"""))                # The length of the struct, in decimal
  )
  |
- (VAR:(?P<var_ref>"""+VAR_CHARS+r"""))               # Back-reference to a previously scanned variable
- )\]                                                 # End of struct information
- \ -\ (?P<description>.*?)                           # Description for the struct
- (,\ (?P<type>"""+TYPES_RE+r"""))?                   # Struct type
- (,\ always\ (?P<assert>(.+?))\?)?$                  # Assertion for the value, combine assertions with 'and' (useful for range checking etc)
+ (EVAL:(?P<eval>.+))                                # Expression to be evaluated, evaluated value acts like struct value, usually used for variables
+ )\]                                                # End of struct information
+ (\ -\ (?P<description>.*?)                         # Description for the struct
+ (,\ (?P<type>"""+TYPES_RE+r"""))?                  # Struct type
+ (,\ expect\ (?P<expect>(.+?)))?                    # Expect the value to be like this expression. Struct attribute 'unexpected' will be None if no expects, True if any expects are False, or False if all expects are True.
+ (,\ assert\ (?P<assert>(.+?)))?                    # Assert the value to be like this expression, will raise AssertionError if not True.
+ )?$
 """, re.VERBOSE)
 
-Definition = namedtuple("Definition", ("var_assign", "address", "length", "var_ref", "description", "type", "asserts"))
-Structure = namedtuple("Structure", ("description", "value"))
+Definition = namedtuple("Definition", ("var_assign", "address", "length", "eval", "description", "type", "expects", "asserts"))
+Structure = namedtuple("Structure", ("description", "value", "unexpected"))
 
 class StructParser:
 	def __init__(self, struct_defs):
@@ -42,11 +43,11 @@ class StructParser:
 		"""
 		self._variables = {}
 		struct_defs = struct_defs.splitlines()
-		struct_defs = [re.search(DEFINITION_SYNTAX, struct).groupdict() for struct in struct_defs if re.search(DEFINITION_SYNTAX, struct) is not None]
+		struct_defs = [re.search(DEFINITION_SYNTAX, struct).groupdict() for struct in struct_defs if re.search(DEFINITION_SYNTAX, struct) is not None] # Filter out lines not matching the syntax
 
 		self.defs = self._to_tree(iter(struct_defs))[0]
 
-	def parse(self, data):
+	def parse(self, data, variables=None):
 		"""
 		Parse the binary data, yielding structure objects.
 
@@ -57,19 +58,22 @@ class StructParser:
 			attributes:
 				description: The description from the structure definition used.
 				value: Parsed value of this structure occurrence in the binary data. The type of this is specified by the type specified in the structure definition.
+				unexpected: None if no expects defined, True if any expects are False, False if all expects are True.
 		Raises:
-			AssertionError if the value assertion per the structure definition is false.
+			AssertionError if any assert is False.
 
 		"""
-		self._variables = {}
-		stream = BitStream(data)
-		yield from self._parse_struct_occurences(stream, self.defs)
-
-		if math.ceil(stream._read_offset / 8) != len(data):
-			print("\n\nWARNING: NOT FULLY PARSED\n\n")
+		if variables is None:
+			variables = {}
+		self._variables = variables
+		if isinstance(data, BitStream):
+			stream = data
+		else:
+			stream = BitStream(data)
+		yield from self._parse_struct_occurrences(stream, self.defs)
 
 	def _to_tree(self, def_iter, stack_level=0, start_def=None):
-		current_stack = []
+		current_level = []
 		try:
 			if start_def is not None:
 				def_ = start_def
@@ -79,22 +83,20 @@ class StructParser:
 			while True:
 				if len(def_["indent"]) == stack_level:
 					def_tuple = self._to_def_tuple(def_)
-					current_stack.append((def_tuple, ()))
-
+					current_level.append((def_tuple, ()))
+					def_ = next(def_iter)
 				elif len(def_["indent"]) == stack_level+1:
 					# found a child of the previous
 					children, next_struct = self._to_tree(def_iter, stack_level+1, def_)
-					current_stack[-1] = current_stack[-1][0], children
+					current_level[-1] = current_level[-1][0], children
 					if next_struct is None:
 						raise StopIteration
 					def_ = next_struct
-					continue
 				elif len(def_["indent"]) < stack_level:
 					# we're at ancestor level again, done with the children
-					return current_stack, def_
-				def_ = next(def_iter)
+					return current_level, def_
 		except StopIteration:
-			return current_stack, None
+			return current_level, None
 
 	@staticmethod
 	def _to_def_tuple(def_):
@@ -125,13 +127,17 @@ class StructParser:
 		else:
 			length_bits = None
 
+		if def_["expect"] is not None:
+			expects = def_["expect"].split(" and ")
+		else:
+			expects = ()
 		if def_["assert"] is not None:
 			asserts = def_["assert"].split(" and ")
 		else:
 			asserts = ()
 
-		if def_["var_ref"] is not None:
-			# if this is a variable reference we can save us the problem of finding a type
+		if def_["eval"] is not None:
+			# if this is an eval we can save us the problem of finding a type
 			type_ = None
 		else:
 			if def_["type"] is not None:
@@ -166,21 +172,18 @@ class StructParser:
 					else:
 						raise ValueError(def_, length_bits)
 
-		return Definition(def_["var_assign"], address_bits, length_bits, def_["var_ref"], def_["description"], type_, asserts)
+		return Definition(def_["var_assign"], address_bits, length_bits, def_["eval"], def_["description"], type_, expects, asserts)
 
-	def _parse_struct_occurences(self, stream, defs, stack_level=0, repeat_times=1):
-		if len(defs) == 0:
-			return
-
+	def _parse_struct_occurrences(self, stream, defs, stack_level=0, repeat_times=1):
 		for _ in range(repeat_times):
 			for def_, children in defs:
-				if def_.var_ref is not None:
-					value = self._variables[def_.var_ref]
+				if def_.eval is not None:
+					value = self._eval(def_.eval)
 				else:
 					if def_.address != None:
 						stream._read_offset = def_.address
 
-					if type(def_.type) == tuple:
+					if isinstance(def_.type, tuple):
 						type_ = def_.type[0]
 						if type_ == str:
 							value = stream.read(str, char_size=def_.type[1], allocated_length=def_.length // 8)
@@ -188,26 +191,31 @@ class StructParser:
 						value = stream.read(bytes, length=def_.length // 8)
 					else:
 						value = stream.read(def_.type)
-					self._assert_value(value, def_)
+
+					if def_.expects:
+						for expression in def_.expects:
+							if not self._eval(str(value)+" "+expression):
+								unexpected = True
+								break
+						else:
+							unexpected = False
+					else:
+						unexpected = None
+
+					for expression in def_.asserts:
+						assert self._eval(str(value)+" "+expression), (value, expression, def_)
 
 					if def_.var_assign is not None:
 						self._variables[def_.var_assign] = value
+					yield Structure(def_.description, value, unexpected)
 
-					yield Structure(def_.description, value)
+				if children:
+					yield from self._parse_struct_occurrences(stream, children, stack_level+1, value)
 
-				yield from self._parse_struct_occurences(stream, children, stack_level+1, value)
-
-	def _assert_value(self, value, def_):
-		for expression in def_.asserts:
-			try:
-				globals_ = {}
-				globals_["__builtins__"] = {}
-				globals_.update(self._variables)
-				assert eval(str(value)+" "+expression, globals_), (value, expression) # definitely not safe, fwiw
-			except AssertionError:
-				print("ASSERTION ERROR:", str(value), "IS NOT", expression)
-				print("DEFINITION INFO:", def_.description)
-				raise
+	def _eval(self, expression):
+		globals_ = {"__builtins__":{}}
+		globals_.update(self._variables)
+		return eval(expression, globals_) # definitely not safe, fwiw
 
 
 def main():
