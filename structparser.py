@@ -32,7 +32,7 @@ DEFINITION_SYNTAX = re.compile(r"""^
 """, re.VERBOSE)
 
 Definition = namedtuple("Definition", ("var_assign", "address", "length", "eval", "description", "type", "expects", "asserts"))
-Structure = namedtuple("Structure", ("description", "value", "unexpected"))
+Structure = namedtuple("Structure", ("level", "description", "value", "unexpected"))
 
 class StructParser:
 	def __init__(self, struct_defs):
@@ -56,7 +56,8 @@ class StructParser:
 		Yields:
 			Named structure tuples,
 			attributes:
-				description: The description from the structure definition used.
+				level: The indentation level from the structure definition.
+				description: The description from the structure definition.
 				value: Parsed value of this structure occurrence in the binary data. The type of this is specified by the type specified in the structure definition.
 				unexpected: None if no expects defined, True if any expects are False, False if all expects are True.
 		Raises:
@@ -207,7 +208,7 @@ class StructParser:
 
 					if def_.var_assign is not None:
 						self._variables[def_.var_assign] = value
-					yield Structure(def_.description, value, unexpected)
+					yield Structure(stack_level, def_.description, value, unexpected)
 
 				if children:
 					yield from self._parse_struct_occurrences(stream, children, stack_level+1, value)
