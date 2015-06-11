@@ -1,0 +1,10 @@
+Component 11 - Item (tested using LOT 16380)
+Index 1 ($+81B2D0):
+[L:BIT1] - flag
+	[L:8] - ???
+	[L:4] - ???
+	[L:BIT1] - flag, assert == False
+		not sure about this
+		[L:4] - ???
+			[L:1] - ???
+

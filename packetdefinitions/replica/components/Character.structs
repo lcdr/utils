@@ -1,0 +1,87 @@
+
+Index 24:
+[L:BIT1] - flag
+	[L:BIT1] - flag
+		[L:8] - ???
+	[L:1] - ???
+
+Index 25-26: missing
+
+Index 27:
+[L:BIT1] - flag
+	[L:4] - ???
+
+Index 28:
+[L:BIT1] - flag
+	[L:BIT1] - ???
+	[L:BIT1] - ???
+
+Index 29:
+[EVAL:creation] - ...
+	[L:BIT1] - flag
+		[L:8] - ???, could be "co" from xml data
+	[L:BIT1] - flag
+		[L:8] - ???
+	[L:BIT1] - flag
+		[L:8] - ???
+	[L:BIT1] - flag
+		[L:8] - ???
+	[L:4] - hair color ("hc" from xml data), u32
+	[L:4] - hair style ("hs" from xml data), u32
+	[L:4] - ???, could be "hd" or "hdc" from xml data, u32
+	[L:4] - shirt color ("t" from xml data), u32
+	[L:4] - pants color ("l" from xml data), u32
+	[L:4] - ???, could be "cd" from xml data, u32
+	[L:4] - ???, could be "hdc" or "hd" from xml data, u32
+	[L:4] - eyebrows style ("es" from xml data), u32
+	[L:4] - eyes style ("ess" from xml data), u32
+	[L:4] - mouth style ("ms" from xml data), u32
+	[L:8] - accountID (in xml data and chardata packet), u64
+	[L:8] - "llog" from xml data, u64
+	[L:8] - ???, could be a couple of things from the xml data (since its 0 in the packet), u64
+	[L:8] - lego score (from xml data), u64
+	[L:BIT1] - flag that sets free2play mode for player (1 means player is free2play)
+	[L:8] - Total Amount of Currency Collected, u64
+	[L:8] - Number of Bricks Collected, u64
+	[L:8] - Number of smashables smashed, u64
+	[L:8] - Number of Quick Builds Completed, u64
+	[L:8] - Number of enemies smashed, u64
+	[L:8] - Number of Rockets used, u64
+	[L:8] - Number of missions completed, u64
+	[L:8] - Number of Pets tamed, u64
+	[L:8] - Number of Imagination power-ups collected, u64
+	[L:8] - Number of Life Power-Ups Collected, u64
+	[L:8] - Number of Armor power-ups collected, u64
+	[L:8] - Total Distance Traveled (in meters), u64
+	[L:8] - Number of times smashed, u64
+	[L:8] - Total damage taken, u64
+	[L:8] - Total damage Healed, u64
+	[L:8] - Total Armor Repaired, u64
+	[L:8] - Total Imagination Restored, u64
+	[L:8] - Total Imagination used, u64
+	[L:8] - Total Distance Driven (in meters), u64
+	[L:8] - Total Time Airborne in a Race Car (in seconds), u64
+	[L:8] - Number of Racing Imagination power-ups collected, u64
+	[L:8] - Number of Racing Imagination Crates Smashed, u64
+	[L:8] - Number of Times Race Car Boost Activated, u64
+	[L:8] - Number of Wrecks in a Race Car, u64
+	[L:8] - Number of Racing Smashables smashed, u64
+	[L:8] - Number of Races finished, u64
+	[L:8] - Number of 1st Place Race Finishes, u64
+	[L:BIT1] - ???, originally a [L:BIT2], simplified for parsing
+	[L:BIT1] - ???, originally a [L:BIT2], simplified for parsing
+		[L:2] - count of characters
+			[L:2] - ???, seems to be a string in text lego data format, sample "1:9746;1:9747;1:9748;", wchar
+[L:BIT1] - flag, assert == True
+	[L:BIT1] - flag?, assert == False
+	[L:BIT1] - ???, assert == False
+	[L:1] - ???, assert == 0
+	[L:BIT1] - ???, assert == False
+	[L:1] - ???, assert == 0
+[L:BIT1] - flag, assert == True
+	[L:4] - ???
+[L:BIT1] - flag (this and below was in a separate function in the code), assert == True
+	[L:8] - ???
+	[L:1] - ??? (count for next struct?)
+	[L:BIT1] - ???
+	[L:4] - ???

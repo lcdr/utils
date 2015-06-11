@@ -1,0 +1,22 @@
+Index 31:
+// component_type 9?
+// Seems to be related to BehaviorTemplate
+[EVAL:creation] - ...
+	[L:BIT1] - flag
+		[L:4] - count for following structs
+			[L:4] - ???
+			[L:4] - ???
+			[L:4] - ???
+			[L:4] - ???
+			[L:4] - count for following structs
+				[L:4] - ???
+				[L:4] - ???, seems to be something in BehaviorTemplate?
+				[L:4] - ???
+				[L:4] - ???, expect == 18
+				[L:8] - ???
+				[L:8] - ???
+				[L:8] - ???, expect == 0
+				[L:BIT1] - ???, assert == False
+				[L:4] - ???, expect == 0
+				[L:4] - ???, expect == 0
+				[L:4] - ???, expect == 0

@@ -1,0 +1,3 @@
+Component 49 - Switch (tested using LOT 16143)
+Index 1 ($+80EBF0):
+[L:BIT1] - since this is a switch it's likely it's the switch state (on/off)
