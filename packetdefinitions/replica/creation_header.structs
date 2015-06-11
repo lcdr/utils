@@ -1,0 +1,22 @@
+[L:1] - Replica packet ID, assert == 0x24
+[L:BIT1] - Whether NetworkID is there, assert == 1
+	[L:2] - NetworkID, u16
+objectID=[L:8] - objectID, s64
+[L:4] - LOT, s32
+[L:1] - length, u8
+	[L:2] - name, wchar
+[L:4] - time_since_created_on_server?
+[L:BIT1] - flag, expect == False
+	[L:4] - size of following struct
+		[L:1] - compressed data, x bytes according to prev struct, u8
+[L:BIT1] - trigger_id, expect == False
+[L:BIT1] - flag
+	[L:8] - SpawnerID, s64
+[L:BIT1] - flag
+	[L:4] - spawner_node_id, expect == 0
+[L:BIT1] - flag
+	[L:4] - ???, float
+[L:BIT1] - flag, assert == False
+	[L:1] - objectWorldState?
+[L:BIT1] - flag, assert == False
+	[L:1] - ???

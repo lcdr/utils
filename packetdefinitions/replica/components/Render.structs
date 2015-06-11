@@ -1,0 +1,10 @@
+Index 32:
+[EVAL:creation]
+	[L:4] - number of BehaviorEffects? (see BehaviorEffect table in cdclient), if this is -1 the client logs "Bad FX Unserialize", expect != -1
+		[L:1] - effectID string length (# of letters), u8
+			[L:1] - char, char
+		[L:4] - effectID, i32
+		[L:1] - effectType, string length (# of letters), u8
+			[L:2] - wchar, wchar
+		[L:4] - ???, float
+		[L:8] - ???

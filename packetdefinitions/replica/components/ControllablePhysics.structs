@@ -1,0 +1,52 @@
+[EVAL:creation] - ...
+	[L:BIT1] - flag
+		[L:4] - ???
+		[L:BIT1] - ???
+		[L:BIT1] - ???
+	[L:BIT1] - flag
+		[L:4] - ???
+		[L:4] - ???
+		[L:4] - ???
+		[L:4] - ???
+		[L:4] - ???
+		[L:4] - ???
+		[L:4] - ???
+[L:BIT1] - flag
+	[L:4] - ???, could be a float, float
+	[L:4] - ???, could be a float, float
+[L:BIT1] - flag
+	[L:4] - ???
+	[L:BIT1] - ???
+[L:BIT1] - flag
+	[L:BIT1] - flag
+		[L:4] - ???
+		[L:BIT1] - ???
+[L:BIT1] - flag
+	[L:4] - pos x, float
+	[L:4] - pos y, float
+	[L:4] - pos z, float
+	[L:4] - rotation x, float
+	[L:4] - rotation y, float
+	[L:4] - rotation z, float
+	[L:4] - rotation w, float
+	[L:BIT1] - is on ground, bool
+	[L:BIT1] - ???
+	[L:BIT1] - flag
+		[L:4] - velocity x, float
+		[L:4] - velocity y, float
+		[L:4] - velocity z, float
+	[L:BIT1] - flag
+		[L:4] - angular velocity x, float
+		[L:4] - angular velocity y, float
+		[L:4] - angular velocity z, float
+	[L:BIT1] - flag
+		[L:8] - ???
+		[L:4] - ???, float
+		[L:4] - ???, float
+		[L:4] - ???, float
+		[L:BIT1] - flag
+			[L:4] - ???, float
+			[L:4] - ???, float
+			[L:4] - ???, float
+	[EVAL:not creation]
+		[L:BIT1] - flag?

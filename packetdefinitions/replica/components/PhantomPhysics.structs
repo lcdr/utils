@@ -1,0 +1,21 @@
+Component 40 - PhantomPhysics (tested using LOT 4940)
+Index 1 ($+834DB0):
+[L:BIT1] - flag
+	[L:4] - position x, float
+	[L:4] - position y, float
+	[L:4] - position z, float
+	[L:4] - rotation x, float
+	[L:4] - rotation y, float
+	[L:4] - rotation z, float
+	[L:4] - rotation w, float
+[L:BIT1] - flag, assert == True
+	[L:BIT1] - flag, expect == False
+		[L:4] - ???
+		[L:4] - ???, float
+		[L:BIT1] - flag
+			[L:4] - ???
+			[L:4] - ???
+		[L:BIT1] - flag
+			[L:4] - ???, float
+			[L:4] - ???, float
+			[L:4] - ???, float
