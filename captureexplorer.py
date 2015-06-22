@@ -1,3 +1,4 @@
+import configparser
 import os
 import sqlite3
 import tkinter.filedialog as filedialog
@@ -90,10 +91,12 @@ class CaptureObject:
 		self.entry = None
 
 class CaptureExplorer(Frame):
-	def __init__(self, db_path, gamemessages_path, master=None):
-		super().__init__(master)
-		self.sqlite = sqlite3.connect(db_path)
-		gamemsg_xml = ET.parse(gamemessages_path)
+	def __init__(self):
+		super().__init__()
+		config = configparser.ConfigParser()
+		config.read("captureexplorer.ini")
+		self.sqlite = sqlite3.connect(config["paths"]["db_path"])
+		gamemsg_xml = ET.parse(config["paths"]["gamemessages_path"])
 		self.gamemsgs = gamemsg_xml.findall("message")
 		self.gamemsg_global_enums = {}
 		for enum in gamemsg_xml.findall("enum"):
@@ -101,10 +104,10 @@ class CaptureExplorer(Frame):
 
 		self.objects = []
 		self.lot_data = {}
-		self.parse_creations = BooleanVar(value=True)
-		self.parse_serializations = BooleanVar(value=True)
-		self.parse_game_messages = BooleanVar(value=True)
-		self.parse_normal_packets = BooleanVar(value=True)
+		self.parse_creations = BooleanVar(value=config["parse"].get("creations", True))
+		self.parse_serializations = BooleanVar(value=config["parse"].get("serializations", True))
+		self.parse_game_messages = BooleanVar(value=config["parse"].get("game_messages", True))
+		self.parse_normal_packets = BooleanVar(value=config["parse"].get("normal_packets", True))
 		self.create_widgets()
 
 	def create_widgets(self):
@@ -272,11 +275,11 @@ class CaptureExplorer(Frame):
 			obj.entry = entry = self.tree.insert("", "end", text="Unknown", values=("object_id="+str(object_id), ""), tag="normal")
 
 		msg_id = packet.read(c_ushort)
-		if msg_id <= 0x7f:
+		if msg_id <= 0x80:
 			msg_id -= 1
 		elif msg_id <= 0xf9:
 			msg_id -= 2
-		elif msg_id <= 0x173:
+		elif msg_id <= 0x175:
 			msg_id += 1
 		elif msg_id <= 0x1fd:
 			msg_id -= 1
@@ -445,9 +448,9 @@ class CaptureExplorer(Frame):
 def main():
 	root = Tk()
 	fontheight = nametofont("TkDefaultFont").metrics("linespace")
-	style = Style(root)
+	style = Style()
 	style.configure("Treeview", rowheight=fontheight)
-	app = CaptureExplorer("<sqlite cdclient path>", "<game messages path>", master=root)
+	app = CaptureExplorer()
 	app.mainloop()
 
 if __name__ == "__main__":
