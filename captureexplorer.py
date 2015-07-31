@@ -35,6 +35,7 @@ component_name[60] = "BaseCombatAI"
 component_name[16] = "Vendor"
 component_name[6] = "Bouncer"
 component_name[39] = "ScriptedActivity"
+component_name[12] = None
 component_name[2] = "Render"
 component_name[107] = "Index36"
 component_name[31] = None
@@ -42,6 +43,7 @@ component_name[35] = None
 component_name[56] = None
 component_name[64] = None
 component_name[73] = None
+component_name[114] = None
 comp_ids = list(component_name.keys())
 
 comp_parser = {}
@@ -329,6 +331,11 @@ class CaptureExplorer(Frame):
 					attr_values["playerID"] = packet.read(c_int64)
 					attr_values["missionID"] = packet.read(c_int)
 					attr_values["bMissionOffered"] = packet.read(c_bit)
+				elif msg_name == "ModularBuildFinish":
+					lots = []
+					for _ in range(packet.read(c_ubyte)):
+						lots.append(packet.read(c_int))
+					attr_values["moduleTemplateIDs"] = lots
 				else:
 					raise NotImplementedError("Custom serialization")
 				values = "\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()])
