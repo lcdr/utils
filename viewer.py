@@ -32,6 +32,7 @@ class Viewer(Frame):
 		self.tree.pack(fill=BOTH, expand=True)
 
 		scrollbar.configure(command=self.tree.yview)
+		pane.add(frame)
 
 		frame = Frame()
 		scrollbar = Scrollbar(frame)
@@ -42,6 +43,7 @@ class Viewer(Frame):
 		self.item_inspector.pack()
 
 		scrollbar.configure(command=self.item_inspector.yview)
+		pane.add(frame)
 
 	def find(self):
 		query = self.find_input.get().lower()
