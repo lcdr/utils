@@ -6,13 +6,10 @@ import xml.etree.ElementTree as ET
 import zipfile
 from collections import OrderedDict
 from ctypes import c_float, c_int, c_int64, c_ubyte, c_uint, c_ushort
-from tkinter import BooleanVar, BOTH, END, HORIZONTAL, Menu, Tk
-from tkinter.font import nametofont
-from tkinter.scrolledtext import ScrolledText
-from tkinter.ttk import Frame, PanedWindow, Style, Treeview
+from tkinter import BooleanVar, END, Menu
 
+import viewer
 import structparser
-
 from pyraknet.bitstream import BitStream, c_bit
 
 with open("packetdefinitions/replica/creation_header.structs", encoding="utf-8") as file:
@@ -62,7 +59,7 @@ for rootdir, _, files in os.walk("packetdefinitions"):
 class ParserOutput:
 	def __init__(self):
 		self.text = ""
-		self.tag = "normal"
+		self.tag = ""
 
 	def __enter__(self):
 		pass
@@ -92,12 +89,12 @@ class CaptureObject:
 		self.lot = lot
 		self.entry = None
 
-class CaptureExplorer(Frame):
+class CaptureViewer(viewer.Viewer):
 	def __init__(self):
 		super().__init__()
 		config = configparser.ConfigParser()
-		config.read("captureexplorer.ini")
-		self.sqlite = sqlite3.connect(config["paths"]["db_path"])
+		config.read("captureviewer.ini")
+		self.db = sqlite3.connect(config["paths"]["db_path"])
 		gamemsg_xml = ET.parse(config["paths"]["gamemessages_path"])
 		self.gamemsgs = gamemsg_xml.findall("message")
 		self.gamemsg_global_enums = {}
@@ -113,6 +110,7 @@ class CaptureExplorer(Frame):
 		self.create_widgets()
 
 	def create_widgets(self):
+		super().create_widgets()
 		menubar = Menu()
 		menubar.add_command(label="Open", command=self.askopenfiles)
 		parse_menu = Menu(menubar)
@@ -123,29 +121,19 @@ class CaptureExplorer(Frame):
 		menubar.add_cascade(label="Parse", menu=parse_menu)
 		self.master.config(menu=menubar)
 
-		pane = PanedWindow(orient=HORIZONTAL)
-		pane.pack(fill=BOTH, expand=True)
-
 		columns = ("id",)
-		self.tree = Treeview(columns=columns)
+		self.tree.configure(columns=columns)
 		for col in columns:
 			self.tree.heading(col, text=col, command=(lambda col: lambda: self.sort_column(col, False))(col))
-		self.tree.tag_configure("normal")
 		self.tree.tag_configure("unexpected", foreground="medium blue")
 		self.tree.tag_configure("assertfail", foreground="orange")
 		self.tree.tag_configure("readerror", background="medium purple")
 		self.tree.tag_configure("error", foreground="red")
-		self.tree.bind("<<TreeviewSelect>>", self.on_item_click)
-		pane.add(self.tree)
-
-		self.item_inspector = ScrolledText(font="TkDefaultFont", tabs="4m")
-		self.item_inspector.insert(END, "Select an item to inspect it.")
-		pane.add(self.item_inspector)
 
 	def askopenfiles(self):
-		files = filedialog.askopenfilenames(filetypes=[("Zip", "*.zip")])
-		if files:
-			self.load_captures(files)
+		paths = filedialog.askopenfilenames(filetypes=[("Zip", "*.zip")])
+		if paths:
+			self.load_captures(paths)
 
 	def load_captures(self, captures):
 		self.tree.set_children("")
@@ -196,11 +184,11 @@ class CaptureExplorer(Frame):
 		lot = packet.read(c_int)
 		if lot not in self.lot_data:
 			try:
-				lot_name = self.sqlite.execute("select name from Objects where id == "+str(lot)).fetchone()[0]
+				lot_name = self.db.execute("select name from Objects where id == "+str(lot)).fetchone()[0]
 			except TypeError:
 				print("Name for lot", lot, "not found")
 				lot_name = str(lot)
-			component_types = [i[0] for i in self.sqlite.execute("select component_type from ComponentsRegistry where id == "+str(lot)).fetchall()]
+			component_types = [i[0] for i in self.db.execute("select component_type from ComponentsRegistry where id == "+str(lot)).fetchall()]
 			parsers = []
 			try:
 				component_types.sort(key=comp_ids.index)
@@ -227,7 +215,7 @@ class CaptureExplorer(Frame):
 
 		obj = CaptureObject(network_id=network_id, object_id=object_id, lot=lot)
 		self.objects.append(obj)
-		obj.entry = self.tree.insert("", "end", text=packet_name, values=(id_, parser_output.text), tag=parser_output.tag)
+		obj.entry = self.tree.insert("", END, text=packet_name, values=(id_, parser_output.text), tag=parser_output.tag)
 
 	@staticmethod
 	def parse_serialization(packet, parser_output, parsers, is_creation=False):
@@ -248,7 +236,7 @@ class CaptureExplorer(Frame):
 		if obj is None:
 			obj = CaptureObject(network_id=network_id)
 			self.objects.append(obj)
-			obj.entry = self.tree.insert("", "end", text="Unknown", values=("network_id="+str(network_id), ""), tag="normal")
+			obj.entry = self.tree.insert("", END, text="Unknown", values=("network_id="+str(network_id), ""))
 
 		if obj.lot is None:
 			parsers = []
@@ -263,7 +251,7 @@ class CaptureExplorer(Frame):
 			parser_output.tag = "error"
 		else:
 			error = ""
-		self.tree.insert(obj.entry, "end", text=packet_name, values=(error, parser_output.text), tag=parser_output.tag)
+		self.tree.insert(obj.entry, END, text=packet_name, values=(error, parser_output.text), tag=parser_output.tag)
 
 	def parse_game_message(self, packet_name, packet):
 		object_id = packet.read(c_int64)
@@ -274,14 +262,14 @@ class CaptureExplorer(Frame):
 		else:
 			obj = CaptureObject(object_id=object_id)
 			self.objects.append(obj)
-			obj.entry = entry = self.tree.insert("", "end", text="Unknown", values=("object_id="+str(object_id), ""), tag="normal")
+			obj.entry = entry = self.tree.insert("", END, text="Unknown", values=("object_id="+str(object_id), ""))
 
 		msg_id = packet.read(c_ushort)
 		if msg_id <= 0x80:
 			msg_id -= 1
 		elif msg_id <= 0xf9:
 			msg_id -= 2
-		elif msg_id <= 0x175:
+		elif msg_id <= 0x1c0:
 			msg_id += 1
 		elif msg_id <= 0x1fd:
 			msg_id -= 1
@@ -327,6 +315,12 @@ class CaptureExplorer(Frame):
 					for _ in range(packet.read(c_ubyte)):
 						updates.append(packet.read(c_float))
 					attr_values["updates"] = updates
+				elif msg_name == "VendorStatusUpdate":
+					attr_values["bUpdateOnly"] = packet.read(c_bit)
+					inv = {}
+					for _ in range(packet.read(c_uint)):
+						inv[packet.read(c_int)] = packet.read(c_int)
+					attr_values["inventoryList"] = inv
 				elif msg_name == "RequestLinkedMission":
 					attr_values["playerID"] = packet.read(c_int64)
 					attr_values["missionID"] = packet.read(c_int)
@@ -339,7 +333,7 @@ class CaptureExplorer(Frame):
 				else:
 					raise NotImplementedError("Custom serialization")
 				values = "\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()])
-				tag = "normal"
+				tag = ""
 			else:
 				local_enums = {}
 				for enum in message.findall("enum"):
@@ -395,7 +389,7 @@ class CaptureExplorer(Frame):
 						value = packet.read(c_float), packet.read(c_float), packet.read(c_float), packet.read(c_float)
 					elif type_ == "LwoNameValue":
 						value = packet.read(str, length_type=c_uint)
-						if len(value) > 0:
+						if value:
 							assert packet.read(c_ushort) == 0 # for some reason has a null terminator
 					elif type_ in local_enums:
 						value = packet.read(c_uint)
@@ -422,13 +416,13 @@ class CaptureExplorer(Frame):
 			tag = "error"
 		else:
 			values = (msg_name, "\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()]))
-			tag = "normal"
-		self.tree.insert(entry, "end", text=packet_name, values=values, tag=tag)
+			tag = ""
+		self.tree.insert(entry, END, text=packet_name, values=values, tag=tag)
 
 	def parse_normal_packet(self, packet_name, packet):
 		id_ = packet_name[packet_name.index("[")+1:packet_name.index("]")]
 		if id_ not in norm_parser:
-			self.tree.insert("", "end", text=packet_name, values=(id_, "Add the struct definition file packetdefinitions/"+id_+".structs to enable parsing of this packet."), tag="error")
+			self.tree.insert("", END, text=packet_name, values=(id_, "Add the struct definition file packetdefinitions/"+id_+".structs to enable parsing of this packet."), tag="error")
 			return
 		if id_.startswith("53"):
 			packet.skip_read(8)
@@ -436,29 +430,13 @@ class CaptureExplorer(Frame):
 			packet.skip_read(1)
 		parser_output = ParserOutput()
 		parser_output.append(norm_parser[id_].parse(packet))
-		self.tree.insert("", "end", text=packet_name, values=(id_, parser_output.text), tag=parser_output.tag)
+		self.tree.insert("", END, text=packet_name, values=(id_, parser_output.text), tag=parser_output.tag)
 
-	def sort_column(self, col, reverse):
-		items = [item for item in self.tree.get_children()]
-		items.sort(key=lambda x: self.tree.set(x, col), reverse=reverse)
-		# rearrange items in sorted positions
-		for index, item in enumerate(items):
-			self.tree.move(item, "", index)
-		# reverse sort next time
-		self.tree.heading(col, command=lambda: self.sort_column(col, not reverse))
-
-	def on_item_click(self, event):
+	def on_item_select(self, event):
 		item = self.tree.selection()[0]
 		self.item_inspector.delete(1.0, END)
 		self.item_inspector.insert(END, self.tree.item(item, "values")[1])
 
-def main():
-	root = Tk()
-	fontheight = nametofont("TkDefaultFont").metrics("linespace")
-	style = Style()
-	style.configure("Treeview", rowheight=fontheight)
-	app = CaptureExplorer()
-	app.mainloop()
-
 if __name__ == "__main__":
-	main()
+	app = CaptureViewer()
+	app.mainloop()
