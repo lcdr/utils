@@ -95,17 +95,22 @@ class CaptureViewer(viewer.Viewer):
 		config = configparser.ConfigParser()
 		config.read("captureviewer.ini")
 		self.db = sqlite3.connect(config["paths"]["db_path"])
-		gamemsg_xml = ET.parse(config["paths"]["gamemessages_path"])
-		self.gamemsgs = gamemsg_xml.findall("message")
-		self.gamemsg_global_enums = {}
-		for enum in gamemsg_xml.findall("enum"):
-			self.gamemsg_global_enums[enum.get("name")] = tuple(value.get("name") for value in enum.findall("value"))
+		self.enable_game_messages = "gamemessages_path" in config["paths"]
+		if self.enable_game_messages:
+			gamemsg_xml = ET.parse(config["paths"]["gamemessages_path"])
+			self.gamemsgs = gamemsg_xml.findall("message")
+			self.gamemsg_global_enums = {}
+			for enum in gamemsg_xml.findall("enum"):
+				self.gamemsg_global_enums[enum.get("name")] = tuple(value.get("name") for value in enum.findall("value"))
 
 		self.objects = []
 		self.lot_data = {}
 		self.parse_creations = BooleanVar(value=config["parse"].get("creations", True))
 		self.parse_serializations = BooleanVar(value=config["parse"].get("serializations", True))
-		self.parse_game_messages = BooleanVar(value=config["parse"].get("game_messages", True))
+		if self.enable_game_messages:
+			self.parse_game_messages = BooleanVar(value=config["parse"].get("game_messages", True))
+		else:
+			self.parse_game_messages = BooleanVar(value=False)
 		self.parse_normal_packets = BooleanVar(value=config["parse"].get("normal_packets", True))
 		self.create_widgets()
 
@@ -116,7 +121,8 @@ class CaptureViewer(viewer.Viewer):
 		parse_menu = Menu(menubar)
 		parse_menu.add_checkbutton(label="Parse Creations", variable=self.parse_creations)
 		parse_menu.add_checkbutton(label="Parse Serializations", variable=self.parse_serializations)
-		parse_menu.add_checkbutton(label="Parse Game Messages", variable=self.parse_game_messages)
+		if self.enable_game_messages:
+			parse_menu.add_checkbutton(label="Parse Game Messages", variable=self.parse_game_messages)
 		parse_menu.add_checkbutton(label="Parse Normal Packets", variable=self.parse_normal_packets)
 		menubar.add_cascade(label="Parse", menu=parse_menu)
 		self.master.config(menu=menubar)
