@@ -40,7 +40,7 @@ class Viewer(Frame):
 
 		self.item_inspector = Text(frame, font="TkDefaultFont", tabs="4m", yscrollcommand=scrollbar.set)
 		self.item_inspector.insert(END, "Select an item to inspect it.")
-		self.item_inspector.pack()
+		self.item_inspector.pack(fill=BOTH, expand=True)
 
 		scrollbar.configure(command=self.item_inspector.yview)
 		pane.add(frame)
