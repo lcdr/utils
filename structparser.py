@@ -148,7 +148,7 @@ class StructParser:
 					type_ = str, 1
 				elif	def_["type"] == "wstring":
 					type_ = str, 2
-				if def_["type"] in ("char", "wchar", "float", "double"):
+				elif def_["type"] in ("char", "wchar", "float", "double"):
 					type_ = vars(ctypes)["c_"+def_["type"]]
 				# the rest of types are in the format (s|u)<bitlength>
 				elif def_["type"].startswith("s"):
