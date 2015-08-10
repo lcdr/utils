@@ -59,19 +59,24 @@ for rootdir, _, files in os.walk("packetdefinitions"):
 class ParserOutput:
 	def __init__(self):
 		self.text = ""
-		self.tag = ""
+		self.tags = []
 
 	def __enter__(self):
 		pass
 
-	def __exit__(self, exc_type, exc_value, traceback):
+	def __exit__(self, exc_type, exc_value, tb):
 		if exc_type is not None:
 			if exc_type == AssertionError:
 				exc_name = "ASSERTION FAILED"
-				self.tag = "assertfail"
+				self.tags.append("assertfail")
 			elif exc_type == IndexError:
 				exc_name = "READ ERROR"
-				self.tag = "readerror"
+				self.tags.append("readerror")
+			else:
+				exc_name = "ERROR"
+				self.tags.append("error")
+				import traceback
+				traceback.print_tb(tb)
 			self.text = exc_name+" "+str(exc_value)+"\n"+self.text
 			return True
 
@@ -79,7 +84,7 @@ class ParserOutput:
 		for level, description, value, unexpected in structs:
 			if unexpected:
 				self.text += "UNEXPECTED: "
-				self.tag = "unexpected"
+				self.tags.append("unexpected")
 			self.text += "\t"*level+description+": "+str(value)+"\n"
 
 class CaptureObject:
@@ -127,7 +132,7 @@ class CaptureViewer(viewer.Viewer):
 		menubar.add_cascade(label="Parse", menu=parse_menu)
 		self.master.config(menu=menubar)
 
-		columns = ("id",)
+		columns = "id",
 		self.tree.configure(columns=columns)
 		for col in columns:
 			self.tree.heading(col, text=col, command=(lambda col: lambda: self.sort_column(col, False))(col))
@@ -215,13 +220,13 @@ class CaptureViewer(viewer.Viewer):
 			parser_output.append(creation_header_parser.parse(packet))
 			if error is not None:
 				parser_output.text = error+"\n"+parser_output.text
-				parser_output.tag = "error"
+				parser_output.tags.append("error")
 			else:
 				self.parse_serialization(packet, parser_output, parsers, is_creation=True)
 
 		obj = CaptureObject(network_id=network_id, object_id=object_id, lot=lot)
 		self.objects.append(obj)
-		obj.entry = self.tree.insert("", END, text=packet_name, values=(id_, parser_output.text), tag=parser_output.tag)
+		obj.entry = self.tree.insert("", END, text=packet_name, values=(id_, parser_output.text), tags=parser_output.tags)
 
 	@staticmethod
 	def parse_serialization(packet, parser_output, parsers, is_creation=False):
@@ -254,10 +259,10 @@ class CaptureViewer(viewer.Viewer):
 		with parser_output:
 			self.parse_serialization(packet, parser_output, parsers)
 		if error is not None:
-			parser_output.tag = "error"
+			parser_output.tags.append("error")
 		else:
 			error = ""
-		self.tree.insert(obj.entry, END, text=packet_name, values=(error, parser_output.text), tag=parser_output.tag)
+		self.tree.insert(obj.entry, END, text=packet_name, values=(error, parser_output.text), tags=parser_output.tags)
 
 	def parse_game_message(self, packet_name, packet):
 		object_id = packet.read(c_int64)
@@ -339,7 +344,7 @@ class CaptureViewer(viewer.Viewer):
 				else:
 					raise NotImplementedError("Custom serialization")
 				values = "\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()])
-				tag = ""
+				tags = []
 			else:
 				local_enums = {}
 				for enum in message.findall("enum"):
@@ -410,25 +415,25 @@ class CaptureViewer(viewer.Viewer):
 					raise ValueError
 		except NotImplementedError as e:
 			values = (msg_name, str(e)+"\nlen: "+str(len(packet)-10)+"\n"+"\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()]))
-			tag = "error"
+			tags = ["error"]
 		except (IndexError, UnicodeDecodeError) as e:
 			print(packet_name, msg_name)
 			import traceback
 			traceback.print_exc()
 			values = ("likely not "+msg_name, "Error while parsing, likely not this message!\n"+str(e)+"\nlen: "+str(len(packet)-10)+"\n"+"\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()]))
-			tag = "error"
+			tags = ["error"]
 		except ValueError as e:
 			values = ("likely not "+msg_name, "Error while parsing, likely not this message!\n"+str(e)+"\nlen: "+str(len(packet)-10))
-			tag = "error"
+			tags = ["error"]
 		else:
 			values = (msg_name, "\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()]))
-			tag = ""
-		self.tree.insert(entry, END, text=packet_name, values=values, tag=tag)
+			tags = []
+		self.tree.insert(entry, END, text=packet_name, values=values, tags=tags)
 
 	def parse_normal_packet(self, packet_name, packet):
 		id_ = packet_name[packet_name.index("[")+1:packet_name.index("]")]
 		if id_ not in norm_parser:
-			self.tree.insert("", END, text=packet_name, values=(id_, "Add the struct definition file packetdefinitions/"+id_+".structs to enable parsing of this packet."), tag="error")
+			self.tree.insert("", END, text=packet_name, values=(id_, "Add the struct definition file packetdefinitions/"+id_+".structs to enable parsing of this packet."), tags=["error"])
 			return
 		if id_.startswith("53"):
 			packet.skip_read(8)
@@ -436,7 +441,7 @@ class CaptureViewer(viewer.Viewer):
 			packet.skip_read(1)
 		parser_output = ParserOutput()
 		parser_output.append(norm_parser[id_].parse(packet))
-		self.tree.insert("", END, text=packet_name, values=(id_, parser_output.text), tag=parser_output.tag)
+		self.tree.insert("", END, text=packet_name, values=(id_, parser_output.text), tags=parser_output.tags)
 
 	def on_item_select(self, event):
 		item = self.tree.selection()[0]
