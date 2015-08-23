@@ -17,7 +17,7 @@ Index 28:
 	[L:BIT1] - ???
 
 Index 29:
-[EVAL:creation] - ...
+[EVAL:creation]
 	[L:BIT1] - flag
 		[L:8] - ???, could be "co" from xml data
 	[L:BIT1] - flag
