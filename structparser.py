@@ -53,6 +53,7 @@ class StructParser:
 
 		Arguments:
 			data: The binary data to parse.
+			variables: A dict of variables to be used in checks as defined by the structure definition, such as expects or asserts.
 		Yields:
 			Named structure tuples,
 			attributes:
@@ -62,7 +63,6 @@ class StructParser:
 				unexpected: None if no expects defined, True if any expects are False, False if all expects are True.
 		Raises:
 			AssertionError if any assert is False.
-
 		"""
 		if variables is None:
 			variables = {}
@@ -128,19 +128,11 @@ class StructParser:
 		else:
 			length_bits = None
 
-		if def_["expect"] is not None:
-			expects = def_["expect"].split(" and ")
-		else:
-			expects = ()
-		if def_["assert"] is not None:
-			asserts = def_["assert"].split(" and ")
-		else:
-			asserts = ()
-
 		if def_["eval"] is not None:
-			# if this is an eval we can save us the problem of finding a type
+			eval_ = compile(def_["eval"], "<eval>", "eval")
 			type_ = None
 		else:
+			eval_ = None
 			if def_["type"] is not None:
 				if def_["type"] == "bytes":
 					type_ = bytes
@@ -173,7 +165,16 @@ class StructParser:
 					else:
 						raise ValueError(def_, length_bits)
 
-		return Definition(def_["var_assign"], address_bits, length_bits, def_["eval"], def_["description"], type_, expects, asserts)
+		if def_["expect"] is not None:
+			expects = [compile("value "+i, "<expect>", "eval") for i in def_["expect"].split(" and ")]
+		else:
+			expects = ()
+		if def_["assert"] is not None:
+			asserts = [compile("value "+i, "<assert>", "eval") for i in def_["assert"].split(" and ")]
+		else:
+			asserts = ()
+
+		return Definition(def_["var_assign"], address_bits, length_bits, eval_, def_["description"], type_, expects, asserts)
 
 	def _parse_struct_occurrences(self, stream, defs, stack_level=0, repeat_times=1):
 		for _ in range(repeat_times):
@@ -195,7 +196,7 @@ class StructParser:
 
 					if def_.expects:
 						for expression in def_.expects:
-							if not self._eval(str(value)+" "+expression):
+							if not self._eval(expression, value):
 								unexpected = True
 								break
 						else:
@@ -204,7 +205,7 @@ class StructParser:
 						unexpected = None
 
 					for expression in def_.asserts:
-						assert self._eval(str(value)+" "+expression), (value, expression, def_)
+						assert self._eval(expression, value), (value, expression, def_)
 
 					if def_.var_assign is not None:
 						self._variables[def_.var_assign] = value
@@ -213,13 +214,13 @@ class StructParser:
 				if children:
 					yield from self._parse_struct_occurrences(stream, children, stack_level+1, value)
 
-	def _eval(self, expression):
-		globals_ = {"__builtins__":{}}
+	def _eval(self, expression, value=None):
+		globals_ = {"__builtins__": {}, "value": value}
 		globals_.update(self._variables)
 		return eval(expression, globals_) # definitely not safe, fwiw
 
 
-def main():
+if __name__ == "__main__":
 	argparser = argparse.ArgumentParser(description=__doc__)
 	argparser.add_argument("filepath", help="path of binary file")
 	argparser.add_argument("definition", help="struct definition file path to parse with")
@@ -233,6 +234,3 @@ def main():
 	with open(args.filepath, "rb") as file:
 		for structure in parser.parse(file.read()):
 			print(structure)
-
-if __name__ == "__main__":
-	main()
