@@ -1,5 +1,5 @@
 Index 22:
-[EVAL:creation] - ...
+[EVAL:creation]
 	[L:BIT1] - flag, expect == False
 		[L:4] - ??? (seems to be a a count for following?)
 			[L:4] - ???
@@ -38,7 +38,7 @@ Index 22:
 			[L:4] - ???
 
 Index 23:
-[EVAL:creation] - ...
+[EVAL:creation]
 	[L:BIT1] - flag
 		[L:4] - ???, assert == 0
 		[L:4] - ???, assert == 0
@@ -50,11 +50,11 @@ Index 23:
 		[L:4] - ???, assert == 0
 		[L:4] - ???
 [L:BIT1] - flag
-	[L:4] - ???
+	[L:4] - life
 	maxhealth=[L:4] - ???, has same number as max health struct, float, assert % 1 == 0
-	[L:4] - ???
+	[L:4] - armor
 	maxarmor=[L:4] - ???, has same number as max armor struct, float, assert % 1 == 0
-	[L:4] - ???, assert == 0
+	[L:4] - imagination, assert == 0
 	maximag=[L:4] - ???, has same number as max imagination, float, assert % 1 == 0
 	[L:4] - ???, assert == 0
 	[L:BIT1] - ???
@@ -63,8 +63,8 @@ Index 23:
 	[L:4] - max health, float, assert == maxhealth
 	[L:4] - max armor, float, assert == maxarmor
 	[L:4] - max imagination, float, assert == maximag
-	[L:4] - ??? (count for next struct?)
-		[L:4] - faction id? (at least something with factions)
+	[L:4] - count for next struct
+		[L:4] - faction id
 	trigger=[L:BIT1] - flag
 	[EVAL:creation]
 		[L:BIT1] - flag, assert == False
