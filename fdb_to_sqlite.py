@@ -120,8 +120,6 @@ class convert:
 			if row_pointer == -1:
 				if self.add_link_info:
 					yield (None,) * (number_of_columns-1) + (True,)	# invalid row
-				else:
-					yield (None,) * number_of_columns
 				rowid += 1
 			else:
 				linked_rows, rowid = self._read_row(rowid, pointer=row_pointer)
