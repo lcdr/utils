@@ -5,12 +5,11 @@ import tkinter.filedialog as filedialog
 import xml.etree.ElementTree as ET
 import zipfile
 from collections import OrderedDict
-from ctypes import c_float, c_int, c_int64, c_ubyte, c_uint, c_ushort
 from tkinter import BooleanVar, END, Menu
 
 import viewer
 import structparser
-from pyraknet.bitstream import BitStream, c_bit
+from pyraknet.bitstream import BitStream, c_bit, c_float, c_int, c_int64, c_ubyte, c_uint, c_ushort
 
 with open("packetdefinitions/replica/creation_header.structs", encoding="utf-8") as file:
 	creation_header_parser = structparser.StructParser(file.read())
@@ -422,7 +421,7 @@ class CaptureViewer(viewer.Viewer):
 			traceback.print_exc()
 			values = ("likely not "+msg_name, "Error while parsing, likely not this message!\n"+str(e)+"\nlen: "+str(len(packet)-10)+"\n"+"\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()]))
 			tags = ["error"]
-		except ValueError as e:
+		except Exception as e:
 			values = ("likely not "+msg_name, "Error while parsing, likely not this message!\n"+str(e)+"\nlen: "+str(len(packet)-10))
 			tags = ["error"]
 		else:

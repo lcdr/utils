@@ -2,16 +2,15 @@
 Module for parsing binary data into structs.
 """
 import argparse
-import ctypes
 import re
 from collections import namedtuple
 
-from pyraknet.bitstream import BitStream, c_bit
+from pyraknet.bitstream import BitStream, c_bit, c_float, c_double, c_int8, c_uint8, c_int16, c_uint16, c_int32, c_uint32, c_int64, c_uint64
 
 VAR_CHARS = r"[^ \t\[\]]+"
 BIT = r"(BIT[0-7])?"
-TYPES = "bytes", "string", "wstring", "char", "wchar", "float", "double", "s8", "u8", "s16", "u16", "s32", "u32", "s64", "u64"
-TYPES_RE = "("+"|".join(TYPES)+")"
+BITSTREAM_TYPES = {"bytes": bytes, "string": (str, 1), "wstring": (str, 2), "float": c_float, "double": c_double, "s8": c_int8, "u8": c_uint8, "s16": c_int16, "u16": c_uint16, "s32": c_int32, "u32": c_uint32, "s64": c_int64, "u64": c_uint64}
+TYPES_RE = "("+"|".join(BITSTREAM_TYPES.keys())+")"
 
 DEFINITION_SYNTAX = re.compile(r"""^
  (?P<indent>\t*)                                    # Indentation
@@ -134,31 +133,19 @@ class StructParser:
 		else:
 			eval_ = None
 			if def_["type"] is not None:
-				if def_["type"] == "bytes":
-					type_ = bytes
-				elif def_["type"] == "string":
-					type_ = str, 1
-				elif	def_["type"] == "wstring":
-					type_ = str, 2
-				elif def_["type"] in ("char", "wchar", "float", "double"):
-					type_ = vars(ctypes)["c_"+def_["type"]]
-				# the rest of types are in the format (s|u)<bitlength>
-				elif def_["type"].startswith("s"):
-					type_ = vars(ctypes)["c_int"+def_["type"][1:]]
-				elif def_["type"].startswith("u"):
-					type_ = vars(ctypes)["c_uint"+def_["type"][1:]]
+				type_ = BITSTREAM_TYPES[def_["type"]]
 			else:
 				# try to find a type based on the length
 				if length_bits == 1:
 					type_ = c_bit
 				elif length_bits == 8:
-					type_ = ctypes.c_byte
+					type_ = c_int8
 				elif length_bits == 16:
-					type_ = ctypes.c_short
+					type_ = c_int16
 				elif length_bits == 32:
-					type_ = ctypes.c_int
+					type_ = c_int32
 				elif length_bits == 64:
-					type_ = ctypes.c_int64
+					type_ = c_int64
 				else:
 					if length_bits % 8 == 0:
 						type_ = bytes

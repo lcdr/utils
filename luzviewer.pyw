@@ -1,13 +1,12 @@
 import configparser
 import os.path
 import sqlite3
-from ctypes import c_float, c_int64, c_ubyte, c_uint, c_uint64, c_ushort
 
 import tkinter.filedialog as filedialog
 from tkinter import END, Menu
 
 import viewer
-from pyraknet.bitstream import BitStream
+from pyraknet.bitstream import BitStream, c_float, c_int64, c_ubyte, c_uint, c_uint64, c_ushort
 
 class LUZViewer(viewer.Viewer):
 	def __init__(self):
