@@ -1,77 +1,78 @@
-Index 22:
+Component 7 - Destructible (tested using LOT 1)
+Index 1 ($+939820):
 [EVAL:creation]
-	[L:BIT1] - flag, expect == False
-		[L:4] - ??? (seems to be a a count for following?)
-			[L:4] - ???
-			[L:BIT1] - flag
-				[L:4] - ???
-			[L:BIT1] - ???
-			[L:BIT1] - ???
-			[L:BIT1] - ???
-			[L:BIT1] - ???
-			[L:BIT1] - ???
-			[L:BIT1] - ???
-			[L:BIT1] - ???
-			[L:BIT1] - ???
-			trigger=[L:BIT1] - ???, seems to trigger L:8 below?
-			[L:BIT1] - ???
-			[EVAL:trigger] - seems to trigger this
-				[L:8] - ???
-			[L:4] - ???
-	[L:BIT1] - flag, expect == False
-		[L:4] - ??? (seems to be a a count for following?)
-			[L:4] - ???
-			[L:BIT1] - flag
-				[L:4] - ???
-			[L:BIT1] - ???
-			[L:BIT1] - ???
-			[L:BIT1] - ???
-			[L:BIT1] - ???
-			[L:BIT1] - ???
-			[L:BIT1] - ???
-			[L:BIT1] - ???
-			[L:BIT1] - ???
-			trigger=[L:BIT1] - ???, seems to trigger L:8 below?
-			[L:BIT1] - ???
-			[EVAL:trigger] - seems to trigger this
-				[L:8] - ???
-			[L:4] - ???
+	[bit] - flag, expect == False
+		[u32] - count for following structs
+			[u32] - ???
+			[bit] - flag
+				[u32] - ???
+			[bit] - ???
+			[bit] - ???
+			[bit] - ???
+			[bit] - ???
+			[bit] - ???
+			[bit] - ???
+			[bit] - ???
+			[bit] - ???
+			trigger=[bit] - ???, seems to trigger [s64] below?
+			[bit] - ???
+			[EVAL:trigger]
+				[s64] - ???
+			[u32] - ???
+	[bit] - flag, expect == False
+		[u32] - count for following structs
+			[u32] - ???
+			[bit] - flag
+				[u32] - ???
+			[bit] - ???
+			[bit] - ???
+			[bit] - ???
+			[bit] - ???
+			[bit] - ???
+			[bit] - ???
+			[bit] - ???
+			[bit] - ???
+			trigger=[bit] - ???, seems to trigger [s64] below?
+			[bit] - ???
+			[EVAL:trigger]
+				[s64] - ???
+			[u32] - ???
 
-Index 23:
+Index 2 ($+92BBD0):
 [EVAL:creation]
-	[L:BIT1] - flag
-		[L:4] - ???, assert == 0
-		[L:4] - ???, assert == 0
-		[L:4] - ???
-		[L:4] - ???
-		[L:4] - ???, assert == 0
-		[L:4] - ???, assert == 0
-		[L:4] - ???, assert == 0
-		[L:4] - ???, assert == 0
-		[L:4] - ???
-[L:BIT1] - flag
-	[L:4] - life
-	maxhealth=[L:4] - ???, has same number as max health struct, float, assert % 1 == 0
-	[L:4] - armor
-	maxarmor=[L:4] - ???, has same number as max armor struct, float, assert % 1 == 0
-	[L:4] - imagination, assert == 0
-	maximag=[L:4] - ???, has same number as max imagination, float, assert % 1 == 0
-	[L:4] - ???, assert == 0
-	[L:BIT1] - ???
-	[L:BIT1] - ???, assert == False
-	[L:BIT1] - ???, assert == False
-	[L:4] - max health, float, assert == maxhealth
-	[L:4] - max armor, float, assert == maxarmor
-	[L:4] - max imagination, float, assert == maximag
-	[L:4] - count for next struct
-		[L:4] - faction id
-	trigger=[L:BIT1] - flag
+	[bit] - flag
+		[u32] - ???, assert == 0
+		[u32] - ???, assert == 0
+		[u32] - ???
+		[u32] - ???
+		[u32] - ???, assert == 0
+		[u32] - ???, assert == 0
+		[u32] - ???, assert == 0
+		[u32] - ???, assert == 0
+		[u32] - ???
+[bit] - flag
+	[u32] - current health
+	maxhealth=[float] - ???, has same number as max health struct, assert % 1 == 0
+	[u32] - current armor
+	maxarmor=[float] - has same number as max armor struct, assert % 1 == 0
+	[u32] - current imagination
+	maximag=[float] - ???, has same number as max imagination, assert % 1 == 0
+	[u32] - ???, assert == 0
+	[bit] - ???
+	[bit] - ???, assert == False
+	[bit] - ???, assert == False
+	[float] - max health, assert == maxhealth
+	[float] - max armor, assert == maxarmor
+	[float] - max imagination, assert == maximag
+	[u32] - count
+		[s32] - faction id
+	trigger=[bit] - flag
 	[EVAL:creation]
-		[L:BIT1] - flag, assert == False
-		[L:BIT1] - flag, assert == False
+		[bit] - flag, assert == False
+		[bit] - flag, assert == False
 		[EVAL:trigger]
-			[L:BIT1] - ???, assert == False
-			[L:BIT1] - flag
-				[L:4] - ???
-[L:BIT1] - flag
-	[L:BIT1] - ???
+			[bit] - ???, assert == False
+			[bit] - flag
+				[u32] - ???
+[bit] - flag
+	[bit] - ???

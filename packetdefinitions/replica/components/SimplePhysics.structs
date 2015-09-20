@@ -1,22 +1,22 @@
 Component 3 - SimplePhysics (tested using LOT 7701)
 Index 1 ($+7E4B00):
 [EVAL:creation]
-	[L:BIT1] - ???
-	[L:4] - ???, float
-[L:BIT1] - flag
-	[L:4] - ???, float
-	[L:4] - ???, float
-	[L:4] - ???, float
-	[L:4] - ???, float
-	[L:4] - ???, float
-	[L:4] - ???, float
-[L:BIT1] - flag
-	[L:4] - ???, assert == 5
-[L:BIT1] - flag
-	[L:4] - position x, float
-	[L:4] - position y, float
-	[L:4] - position z, float
-	[L:4] - rotation x, float
-	[L:4] - rotation y, float
-	[L:4] - rotation z, float
-	[L:4] - rotation w, float
+	[bit] - ???
+	[float] - ???
+[bit] - flag
+	[float] - ???
+	[float] - ???
+	[float] - ???
+	[float] - ???
+	[float] - ???
+	[float] - ???
+[bit] - flag
+	[u32] - ???, assert == 5
+[bit] - flag
+	[float] - position x
+	[float] - position y
+	[float] - position z
+	[float] - rotation x
+	[float] - rotation y
+	[float] - rotation z
+	[float] - rotation w

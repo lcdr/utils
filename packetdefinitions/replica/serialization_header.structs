@@ -1,7 +1,7 @@
-[L:BIT1] - flag
-	[L:BIT1] - flag, expect == False
-		[L:8] - ???
-		[L:BIT1] - ???
-	[L:BIT1] - flag, expect == False
-		[L:2] - ??? (if > 0 read next block n times?)
-			[L:8] - ???
+[bit] - flag
+	[bit] - flag, expect == False
+		[s64] - ???
+		[bit] - ???
+	[bit] - flag, expect == False
+		[u16] - ??? (if > 0 read next block n times?)
+			[u64] - ???
