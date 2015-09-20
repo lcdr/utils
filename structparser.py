@@ -8,29 +8,24 @@ from collections import namedtuple
 from pyraknet.bitstream import BitStream, c_bit, c_float, c_double, c_int8, c_uint8, c_int16, c_uint16, c_int32, c_uint32, c_int64, c_uint64
 
 VAR_CHARS = r"[^ \t\[\]]+"
-BIT = r"(BIT[0-7])?"
-BITSTREAM_TYPES = {"bytes": bytes, "string": (str, 1), "wstring": (str, 2), "float": c_float, "double": c_double, "s8": c_int8, "u8": c_uint8, "s16": c_int16, "u16": c_uint16, "s32": c_int32, "u32": c_uint32, "s64": c_int64, "u64": c_uint64}
+BITSTREAM_TYPES = {"bit": c_bit, "float": c_float, "double": c_double, "s8": c_int8, "u8": c_uint8, "s16": c_int16, "u16": c_uint16, "s32": c_int32, "u32": c_uint32, "s64": c_int64, "u64": c_uint64}
 TYPES_RE = "("+"|".join(BITSTREAM_TYPES.keys())+")"
 
 DEFINITION_SYNTAX = re.compile(r"""^
  (?P<indent>\t*)                                    # Indentation
  ((?P<var_assign>"""+VAR_CHARS+r""")=)?             # Assign this struct a variable so the value can be back-referenced later
- \[(                                                # Start of struct information
- (                                                  # A literal struct definition
-	(A:(?P<address>0x[0-9a-fA-F]*"""+BIT+r"""),)?     # Fixed address information, in hexadecimal. This is unnecessary for structs that directly follow the previous struct and is rarely used.
-	(L:(?P<length>[0-9]*"""+BIT+r"""))                # The length of the struct, in decimal
- )
- |
+ \[(
  (EVAL:(?P<eval>.+))                                # Expression to be evaluated, evaluated value acts like struct value, usually used for variables
- )\]                                                # End of struct information
+ |
+ (?P<type>"""+TYPES_RE+r""")                       # Struct type
+ )\]
  (\ -\ (?P<description>.*?)                         # Description for the struct
- (,\ (?P<type>"""+TYPES_RE+r"""))?                  # Struct type
  (,\ expect\ (?P<expect>(.+?)))?                    # Expect the value to be like this expression. Struct attribute 'unexpected' will be None if no expects, True if any expects are False, or False if all expects are True.
  (,\ assert\ (?P<assert>(.+?)))?                    # Assert the value to be like this expression, will raise AssertionError if not True.
  )?$
 """, re.VERBOSE)
 
-Definition = namedtuple("Definition", ("var_assign", "address", "length", "eval", "description", "type", "expects", "asserts"))
+Definition = namedtuple("Definition", ("var_assign", "eval", "type", "description", "expects", "asserts"))
 Structure = namedtuple("Structure", ("level", "description", "value", "unexpected"))
 
 class StructParser:
@@ -100,57 +95,12 @@ class StructParser:
 
 	@staticmethod
 	def _to_def_tuple(def_):
-		if def_["address"] is not None:
-			split = def_["address"].split("BIT")
-			if split[0] != "":
-				bytes_ = int(split[0], 16)
-			else:
-				bytes_ = 0
-			if len(split) == 2:
-				bits = int(split[1])
-			else:
-				bits = 0
-			address_bits = bytes_ * 8 + bits
-		else:
-			address_bits = None
-		if def_["length"] is not None:
-			split = def_["length"].split("BIT")
-			if split[0] != "":
-				bytes_ = int(split[0])
-			else:
-				bytes_ = 0
-			if len(split) == 2:
-				bits = int(split[1])
-			else:
-				bits = 0
-			length_bits = bytes_ * 8 + bits
-		else:
-			length_bits = None
-
 		if def_["eval"] is not None:
 			eval_ = compile(def_["eval"], "<eval>", "eval")
 			type_ = None
 		else:
 			eval_ = None
-			if def_["type"] is not None:
-				type_ = BITSTREAM_TYPES[def_["type"]]
-			else:
-				# try to find a type based on the length
-				if length_bits == 1:
-					type_ = c_bit
-				elif length_bits == 8:
-					type_ = c_int8
-				elif length_bits == 16:
-					type_ = c_int16
-				elif length_bits == 32:
-					type_ = c_int32
-				elif length_bits == 64:
-					type_ = c_int64
-				else:
-					if length_bits % 8 == 0:
-						type_ = bytes
-					else:
-						raise ValueError(def_, length_bits)
+			type_ = BITSTREAM_TYPES[def_["type"]]
 
 		if def_["expect"] is not None:
 			expects = [compile("value "+i, "<expect>", "eval") for i in def_["expect"].split(" and ")]
@@ -161,7 +111,7 @@ class StructParser:
 		else:
 			asserts = ()
 
-		return Definition(def_["var_assign"], address_bits, length_bits, eval_, def_["description"], type_, expects, asserts)
+		return Definition(def_["var_assign"], eval_, type_, def_["description"], expects, asserts)
 
 	def _parse_struct_occurrences(self, stream, defs, stack_level=0, repeat_times=1):
 		for _ in range(repeat_times):
@@ -169,17 +119,7 @@ class StructParser:
 				if def_.eval is not None:
 					value = self._eval(def_.eval)
 				else:
-					if def_.address != None:
-						stream._read_offset = def_.address
-
-					if isinstance(def_.type, tuple):
-						type_ = def_.type[0]
-						if type_ == str:
-							value = stream.read(str, char_size=def_.type[1], allocated_length=def_.length // 8)
-					elif def_.type == bytes:
-						value = stream.read(bytes, length=def_.length // 8)
-					else:
-						value = stream.read(def_.type)
+					value = stream.read(def_.type)
 
 					if def_.expects:
 						for expression in def_.expects:

@@ -1,3 +1,4 @@
-Index 36:
-[L:BIT1] - flag, assert == True
-	[L:8] - ???
+Component 107 - Unknown (tested using LOT 1)
+Index 1 ($+7D6690):
+[bit] - flag
+	[s64] - ???

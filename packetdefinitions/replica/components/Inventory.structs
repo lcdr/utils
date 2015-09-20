@@ -1,20 +1,20 @@
-
-Index 30:
-[L:BIT1] - flag
-	[L:4] - # of items equipped, u32, assert > -1 and < 9
-		[L:8] - objectID of item, s64
-		[L:4] - LOT of item, s32
-		[L:BIT1] - flag
-			[L:8] - ???
-		[L:BIT1] - flag
-			[L:4] - ???, assert == 1
-		[L:BIT1] - flag
-			[L:2] - slot in inventory
-		[L:BIT1] - flag
-			[L:4] - ???, expect == 4
-		[L:BIT1] - flag
-			[L:4] - length of following structure
-				[L:1] - compressed data
-		[L:BIT1] - ??? (perhaps a flag that specifies if the item gets loaded or if data needs to be retrieved from the cdclient database?), expect == True
-[L:BIT1] - flag, assert == True
-	[L:4] - ???, assert == 0
+Component 17 - Inventory (tested using LOT 1)
+Index 1 ($+952860):
+[bit] - flag
+	[u32] - # of items equipped, assert > -1 and < 9
+		[s64] - objectID of item
+		[s32] - LOT of item
+		[bit] - flag
+			[s64] - ???
+		[bit] - flag
+			[u32] - ???, assert == 1
+		[bit] - flag
+			[u16] - slot in inventory
+		[bit] - flag
+			[u32] - ???, expect == 4
+		[bit] - flag
+			[u32] - length of following structure
+				[u8] - compressed data
+		[bit] - ??? (perhaps a flag that specifies if the item gets loaded or if data needs to be retrieved from the cdclient database?), expect == True
+[bit] - flag
+	[u32] - ???, assert == 0

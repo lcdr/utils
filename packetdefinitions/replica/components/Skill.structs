@@ -1,22 +1,21 @@
-Index 31:
-// component_type 9?
-// Seems to be related to BehaviorTemplate
+Component 9 - Skill (tested using LOT 1)
+Index 1 ($+806270):
 [EVAL:creation]
-	[L:BIT1] - flag
-		[L:4] - count for following structs
-			[L:4] - ???
-			[L:4] - ???
-			[L:4] - ???
-			[L:4] - ???
-			[L:4] - count for following structs
-				[L:4] - ???
-				[L:4] - ???, seems to be something in BehaviorTemplate?
-				[L:4] - ???
-				[L:4] - ???, expect == 18
-				[L:8] - ???
-				[L:8] - ???
-				[L:8] - ???, expect == 0
-				[L:BIT1] - ???, assert == False
-				[L:4] - ???, expect == 0
-				[L:4] - ???, expect == 0
-				[L:4] - ???, expect == 0
+	[bit] - flag
+		[u32] - count for following structs
+			[u32] - ???
+			[u32] - ???
+			[u32] - ???
+			[u32] - ???
+			[u32] - count for following structs
+				[u32] - ???
+				[u32] - ???, seems to be something in BehaviorTemplate?
+				[u32] - ???
+				[u32] - ???, expect == 18
+				[s64] - ???
+				[s64] - ???
+				[s64] - ???, expect == 0
+				[bit] - ???, assert == False
+				[u32] - ???, expect == 0
+				[u32] - ???, expect == 0
+				[u32] - ???, expect == 0

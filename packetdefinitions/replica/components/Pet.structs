@@ -1,15 +1,15 @@
 Component 26 - Pet (tested using LOT 3995)
 Index 1 ($+8D1270):
-[L:BIT1] - flag
-	[L:4] - ???
-	[L:4] - ???
-	[L:BIT1] - flag
-		[L:8] - ???
-	[L:BIT1] - flag
-		[L:8] - ???
-	[L:BIT1] - flag
-		[L:4] - ???
-		[L:1] - length
-			[L:2] - ???
-		[L:1] - length
-			[L:2] - ???
+[bit] - flag
+	[u32] - ???
+	[u32] - ???
+	[bit] - flag
+		[s64] - ???
+	[bit] - flag
+		[s64] - ???
+	[bit] - flag
+		[u32] - ???
+		[u8] - length
+			[u16] - ???
+		[u8] - length
+			[u16] - ???
