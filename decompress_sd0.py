@@ -2,18 +2,16 @@ import argparse
 import os.path
 import zlib
 
-def decompress(in_path, out_path):
-	with open(in_path, "rb") as in_file:
-		data = in_file.read()
-
+def decompress(data):
 	assert data[:5] == b"sd0\x01\xff"
 	pos = 5
-	with open(out_path, "wb") as out_file:
-		while pos < len(data):
-			length = int.from_bytes(data[pos:pos+4], "little")
-			pos += 4
-			out_file.write(zlib.decompress(data[pos:pos+length]))
-			pos += length
+	out = b""
+	while pos < len(data):
+		length = int.from_bytes(data[pos:pos+4], "little")
+		pos += 4
+		out += zlib.decompress(data[pos:pos+length])
+		pos += length
+	return out
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
@@ -24,6 +22,10 @@ if __name__ == "__main__":
 		filename, ext = os.path.splitext(os.path.basename(args.in_path))
 		args.out_path = filename+"_decompressed"+ext
 
-	decompress(args.in_path, args.out_path)
+	with open(args.in_path, "rb") as file:
+		data = in_file.read()
+
+	with open(args.out_path, "wb") as file:
+		file.write(decompress(data))
 
 	print("Decompressed file:", args.out_path)
