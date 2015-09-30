@@ -1,6 +1,6 @@
 Component 5 - Script (tested using LOT 3495)
 Index 1 ($+87CDF0):
-[EVAL:creation]
+if creation:
 	[bit] - flag
 		[u32] - size of following struct
 			[u8] - compressed data, x bytes according to prev struct

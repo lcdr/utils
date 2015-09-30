@@ -1,6 +1,6 @@
 Component 1 - ControllablePhysics (tested using LOT 1)
 Index 1 ($+845770):
-[EVAL:creation]
+if creation:
 	[bit] - flag
 		[u32] - ???
 		[bit] - ???
@@ -50,5 +50,5 @@ Index 1 ($+845770):
 			[float] - ???
 			[float] - ???
 			[float] - ???
-	[EVAL:not creation]
+	if not creation:
 		[bit] - flag?

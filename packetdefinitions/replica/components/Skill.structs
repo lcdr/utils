@@ -1,6 +1,6 @@
 Component 9 - Skill (tested using LOT 1)
 Index 1 ($+806270):
-[EVAL:creation]
+if creation:
 	[bit] - flag
 		[u32] - count for following structs
 			[u32] - ???

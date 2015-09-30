@@ -1,6 +1,6 @@
 Component 2 - Render (tested using LOT 1)
 Index 1 ($+840310):
-[EVAL:creation]
+if creation:
 	[u32] - number of BehaviorEffects? (see BehaviorEffect table in cdclient), if this is -1 the client logs "Bad FX Unserialize", expect != -1
 		[u8] - length
 			[u8] - effectID string

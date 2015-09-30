@@ -15,7 +15,7 @@ Index 3 ($+7DC480):
 	[bit] - ???
 
 Index 4 ($+8A3A40):
-[EVAL:creation]
+if creation:
 	[bit] - flag
 		[u64] - ???, could be "co" from xml data
 	[bit] - flag
