@@ -11,21 +11,29 @@ VAR_CHARS = r"[^ \t\[\]]+"
 BITSTREAM_TYPES = {"bit": c_bit, "float": c_float, "double": c_double, "s8": c_int8, "u8": c_uint8, "s16": c_int16, "u16": c_uint16, "s32": c_int32, "u32": c_uint32, "s64": c_int64, "u64": c_uint64}
 TYPES_RE = "("+"|".join(BITSTREAM_TYPES.keys())+")"
 
-DEFINITION_SYNTAX = re.compile(r"""^
- (?P<indent>\t*)                                    # Indentation
- ((?P<var_assign>"""+VAR_CHARS+r""")=)?             # Assign this struct a variable so the value can be back-referenced later
- \[(
- (EVAL:(?P<eval>.+))                                # Expression to be evaluated, evaluated value acts like struct value, usually used for variables
- |
- (?P<type>"""+TYPES_RE+r""")                       # Struct type
- )\]
- (\ -\ (?P<description>.*?)                         # Description for the struct
- (,\ expect\ (?P<expect>(.+?)))?                    # Expect the value to be like this expression. Struct attribute 'unexpected' will be None if no expects, True if any expects are False, or False if all expects are True.
- (,\ assert\ (?P<assert>(.+?)))?                    # Assert the value to be like this expression, will raise AssertionError if not True.
- )?$
+DEFINITION_SYNTAX = re.compile(r"""
+	^(?P<indent>\t*)                         # Indentation
+	(if\ (?P<if_condition>.+):
+	|
+	while\ (?P<while_condition>.+):
+	|
+	(?P<break>break)
+	|
+	((?P<var_assign>"""+VAR_CHARS+r""")=)?   # Assign this struct a variable so the value can be back-referenced later
+	\[
+	(?P<type>"""+TYPES_RE+r""")              # Struct type
+	\]
+	\ -\ (?P<description>.*?)                # Description for the struct
+	(,\ expect\ (?P<expect>(.+?)))?          # Expect the value to be like this expression. Struct attribute 'unexpected' will be None if no expects, True if any expects are False, or False if all expects are True.
+	(,\ assert\ (?P<assert>(.+?)))?          # Assert the value to be like this expression, will raise AssertionError if not True.
+)$
 """, re.VERBOSE)
 
-Definition = namedtuple("Definition", ("var_assign", "eval", "type", "description", "expects", "asserts"))
+IfStatement = namedtuple("IfStatement", ("condition",))
+WhileStatement = namedtuple("WhileStatement", ("condition",))
+BreakStatement = namedtuple("BreakStatement", ())
+StructDefinition = namedtuple("struct_token", ("var_assign", "type", "description", "expects", "asserts"))
+
 Structure = namedtuple("Structure", ("level", "description", "value", "unexpected"))
 
 class StructParser:
@@ -95,12 +103,16 @@ class StructParser:
 
 	@staticmethod
 	def _to_def_tuple(def_):
-		if def_["eval"] is not None:
-			eval_ = compile(def_["eval"], "<eval>", "eval")
-			type_ = None
-		else:
-			eval_ = None
-			type_ = BITSTREAM_TYPES[def_["type"]]
+		if def_["if_condition"] is not None:
+			condition = compile(def_["if_condition"], "<if_condition>", "eval")
+			return IfStatement(condition)
+		if def_["while_condition"] is not None:
+			condition = compile(def_["while_condition"], "<while_condition>", "eval")
+			return WhileStatement(condition)
+		if def_["break"] is not None:
+			return BreakStatement()
+
+		type_ = BITSTREAM_TYPES[def_["type"]]
 
 		if def_["expect"] is not None:
 			expects = [compile("value "+i, "<expect>", "eval") for i in def_["expect"].split(" and ")]
@@ -111,13 +123,24 @@ class StructParser:
 		else:
 			asserts = ()
 
-		return Definition(def_["var_assign"], eval_, type_, def_["description"], expects, asserts)
+		return StructDefinition(def_["var_assign"], type_, def_["description"], expects, asserts)
 
 	def _parse_struct_occurrences(self, stream, defs, stack_level=0, repeat_times=1):
 		for _ in range(repeat_times):
 			for def_, children in defs:
-				if def_.eval is not None:
-					value = self._eval(def_.eval)
+				if isinstance(def_, IfStatement):
+					if children and self._eval(def_.condition):
+						break_ = yield from self._parse_struct_occurrences(stream, children, stack_level+1)
+						if break_:
+							return True
+				elif isinstance(def_, WhileStatement):
+					if children:
+						while self._eval(def_.condition):
+							break_ = yield from self._parse_struct_occurrences(stream, children, stack_level+1)
+							if break_:
+								break
+				elif isinstance(def_, BreakStatement):
+					return True
 				else:
 					value = stream.read(def_.type)
 
@@ -138,8 +161,10 @@ class StructParser:
 						self._variables[def_.var_assign] = value
 					yield Structure(stack_level, def_.description, value, unexpected)
 
-				if children:
-					yield from self._parse_struct_occurrences(stream, children, stack_level+1, value)
+					if children and value:
+						break_ = yield from self._parse_struct_occurrences(stream, children, stack_level+1, value)
+						if break_:
+							return True
 
 	def _eval(self, expression, value=None):
 		globals_ = {"__builtins__": {}, "value": value}

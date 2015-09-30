@@ -1,6 +1,6 @@
 Component 3 - SimplePhysics (tested using LOT 7701)
 Index 1 ($+7E4B00):
-[EVAL:creation]
+if creation:
 	[bit] - ???
 	[float] - ???
 [bit] - flag
