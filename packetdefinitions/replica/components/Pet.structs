@@ -3,11 +3,11 @@ Index 1 ($+8D1270):
 [bit] - flag
 	[u32] - ???
 	[u32] - ???
-	[bit] - flag
+	[bit] - flag, expect == False
 		[s64] - ???
-	[bit] - flag
+	[bit] - flag, expect == False
 		[s64] - ???
-	[bit] - flag
+	[bit] - flag, expect == False
 		[u32] - ???
 		[u8] - length
 			[u16] - ???

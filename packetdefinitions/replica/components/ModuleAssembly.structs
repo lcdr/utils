@@ -1,0 +1,9 @@
+Component 61 - ModuleAssembly (tested using LOT 8092)
+Index 1 ($+913F30):
+if creation:
+	[bit] - flag
+		[bit] - flag
+			[s64] - ???
+		[bit] - ???
+		[u16] - length
+			[u16] - wchar

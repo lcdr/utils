@@ -1,0 +1,47 @@
+Component 71 - RacingControl (tested using LOT 11296)
+Index 1 ($+949620):
+start of something
+start of ScriptedActivity
+[bit] - flag
+	[u32] - length
+		[u64] - player object id
+		constant size 10 loop
+		[float] - ???
+		[float] - ???
+		[float] - ???
+		[float] - ???
+		[float] - ???
+		[float] - ???
+		[float] - ???
+		[float] - ???
+		[float] - ???
+		[float] - ???
+end of ScriptedActivity
+[bit] - flag
+	[u16] - ???
+[bit] - flag
+	while True:
+		not_break=[bit] - flag
+		if not not_break:
+			break
+		[s64] - player object id
+		[s64] - car object id
+		[u32] - ???
+		[bit] - ???
+[bit] - flag
+	while True:
+		not_break=[bit] - flag
+		if not not_break:
+			break
+		[s64] - player object id
+		[u32] - ???
+end of something
+[bit] - flag
+	[u16] - remaining laps?
+	[u16] - length
+		[u16] - path name
+[bit] - flag
+	[bit] - flag
+		[s64] - ???
+		[float] - ???
+		[float] - ???
