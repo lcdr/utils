@@ -2,7 +2,7 @@ Component 39 - ScriptedActivity (tested using LOT 11165)
 Index 1 ($+9002B0):
 [bit] - flag
 	[u32] - length
-		[u64] - ???
+		[s64] - player object id
 		constant size 10 loop
 		[float] - ???
 		[float] - ???

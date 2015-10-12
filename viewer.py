@@ -17,7 +17,7 @@ class Viewer(Frame):
 	def create_widgets(self):
 		find_entry = Entry(textvariable=self.find_input)
 		find_entry.pack(fill=X)
-		find_entry.bind("<Return>", lambda event: self.find())
+		find_entry.bind("<Return>", self.find)
 
 		pane = PanedWindow(orient=HORIZONTAL)
 		pane.pack(fill=BOTH, expand=True)
@@ -45,15 +45,15 @@ class Viewer(Frame):
 		scrollbar.configure(command=self.item_inspector.yview)
 		pane.add(frame)
 
-	def find(self):
+	def find(self, _):
 		query = self.find_input.get().lower()
 		for item in self.tree.tag_has("match"):
 			tags = list(self.tree.item(item, "tags"))
 			tags.remove("match")
 			self.tree.item(item, tags=tags)
 		for parent, detached_children in self.detached_items.items():
-			for i in detached_children:
-				self.tree.reattach(i, parent, END)
+			for index, item in detached_children:
+				self.tree.reattach(item, parent, index)
 		if query:
 			self.filter_items(query)
 
@@ -68,9 +68,9 @@ class Viewer(Frame):
 				self.tree.see(item)
 			if self.filter_items(query, item) and item in detached_children:
 				detached_children.remove(item) # don't detach if a child matches
-		self.detached_items[parent] = detached_children
-		for i in detached_children:
-			self.tree.detach(i)
+		self.detached_items[parent] = [(self.tree.index(item), item) for item in detached_children]
+		for item in detached_children:
+			self.tree.detach(item)
 		return len(detached_children) != len(all_children) # return true if any children match
 
 	def sort_column(self, col, reverse, parent=""):

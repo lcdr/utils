@@ -1,0 +1,8 @@
+Component 108 - Something vehicle related (tested using LOT 7305)
+Index 1 ($+7DC1F0)
+[bit] - flag
+	[bit] - flag
+		[s64] - driver object id
+	[bit] - flag
+		[u32] - ???
+	[bit] - ???

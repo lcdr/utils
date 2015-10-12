@@ -99,7 +99,7 @@ class LUZViewer(viewer.Viewer):
 					rotation = stream.read(c_float), stream.read(c_float), stream.read(c_float), stream.read(c_float)
 					scale = stream.read(c_float)
 					config_data = stream.read(str, length_type=c_uint)
-					config_data = config_data.replace("{", "<crlbrktstart>").replace("}", "<crlbrktend>").replace("\\", "<backslash>") # for some reason these characters aren't properly escaped when sent to Tk
+					config_data = config_data.replace("{", "<crlbrktopen>").replace("}", "<crlbrktclose>").replace("\\", "<backslash>") # for some reason these characters aren't properly escaped when sent to Tk
 					assert stream.read(c_uint) == 0
 					lot_name = ""
 					if lot == 176:
@@ -115,7 +115,7 @@ class LUZViewer(viewer.Viewer):
 				pass
 			stream._read_offset = (start_pos + chunk_length) * 8 # go to the next CHNK
 
-	def on_item_select(self, event):
+	def on_item_select(self, _):
 		item = self.tree.selection()[0]
 		item_type = self.tree.item(item, "text")
 		if item_type == "Zone":
