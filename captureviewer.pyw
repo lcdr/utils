@@ -8,8 +8,9 @@ import zipfile
 from collections import OrderedDict
 from tkinter import BooleanVar, END, Menu
 
-import viewer
+import amf3
 import structparser
+import viewer
 from pyraknet.bitstream import BitStream, c_bit, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort
 
 with open("packetdefinitions/replica/creation_header.structs", encoding="utf-8") as file:
@@ -525,6 +526,8 @@ class CaptureViewer(viewer.Viewer):
 						value = packet.read(str, length_type=c_uint)
 						if value:
 							assert packet.read(c_ushort) == 0 # for some reason has a null terminator
+					elif type_ == "NDGFxValue":
+						value = amf3.read(packet)
 					elif type_ in local_enums:
 						value = packet.read(c_uint)
 						value = local_enums[type_][value]+" ("+str(value)+")"
