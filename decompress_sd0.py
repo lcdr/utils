@@ -23,7 +23,7 @@ if __name__ == "__main__":
 		args.out_path = filename+"_decompressed"+ext
 
 	with open(args.in_path, "rb") as file:
-		data = in_file.read()
+		data = file.read()
 
 	with open(args.out_path, "wb") as file:
 		file.write(decompress(data))
