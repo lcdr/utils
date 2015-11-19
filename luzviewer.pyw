@@ -1,8 +1,10 @@
 import configparser
 import os.path
 import sqlite3
+import sys
 
 import tkinter.filedialog as filedialog
+import tkinter.messagebox as messagebox
 from tkinter import END, Menu
 
 import viewer
@@ -13,7 +15,11 @@ class LUZViewer(viewer.Viewer):
 		super().__init__()
 		config = configparser.ConfigParser()
 		config.read("luzviewer.ini")
-		self.db = sqlite3.connect(config["paths"]["db_path"])
+		try:
+			self.db = sqlite3.connect(config["paths"]["db_path"])
+		except:
+			messagebox.showerror("Can not open database", "Make sure db_path in the INI is set correctly.")
+			sys.exit()
 		self.create_widgets()
 
 	def create_widgets(self):

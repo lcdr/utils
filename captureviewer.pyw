@@ -2,7 +2,9 @@ import configparser
 import math
 import os
 import sqlite3
+import sys
 import tkinter.filedialog as filedialog
+import tkinter.messagebox as messagebox
 import xml.etree.ElementTree as ET
 import zipfile
 from collections import OrderedDict
@@ -111,7 +113,12 @@ class CaptureViewer(viewer.Viewer):
 		super().__init__()
 		config = configparser.ConfigParser()
 		config.read("captureviewer.ini")
-		self.db = sqlite3.connect(config["paths"]["db_path"])
+		try:
+			self.db = sqlite3.connect(config["paths"]["db_path"])
+		except:
+			messagebox.showerror("Can not open database", "Make sure db_path in the INI is set correctly.")
+			sys.exit()
+
 		self.enable_game_messages = "gamemessages_path" in config["paths"]
 		if self.enable_game_messages:
 			gamemsg_xml = ET.parse(config["paths"]["gamemessages_path"])
@@ -122,13 +129,13 @@ class CaptureViewer(viewer.Viewer):
 
 		self.objects = []
 		self.lot_data = {}
-		self.parse_creations = BooleanVar(value=config["parse"].get("creations", True))
-		self.parse_serializations = BooleanVar(value=config["parse"].get("serializations", True))
+		self.parse_creations = BooleanVar(value=config["parse"]["creations"])
+		self.parse_serializations = BooleanVar(value=config["parse"]["serializations"])
 		if self.enable_game_messages:
-			self.parse_game_messages = BooleanVar(value=config["parse"].get("game_messages", True))
+			self.parse_game_messages = BooleanVar(value=config["parse"]["game_messages"])
 		else:
 			self.parse_game_messages = BooleanVar(value=False)
-		self.parse_normal_packets = BooleanVar(value=config["parse"].get("normal_packets", True))
+		self.parse_normal_packets = BooleanVar(value=config["parse"]["normal_packets"])
 		self.create_widgets()
 
 	def create_widgets(self):
