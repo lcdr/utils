@@ -16,6 +16,6 @@ if creation:
 				[s64] - ???
 				[s64] - ???, expect == 0
 				[bit] - ???, assert == False
-				[u32] - ???, expect == 0
+				[float] - ???, expect == 0
 				[u32] - ???, expect == 0
 				[u32] - ???, expect == 0

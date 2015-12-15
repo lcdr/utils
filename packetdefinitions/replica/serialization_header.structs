@@ -1,7 +1,7 @@
 [bit] - flag
 	[bit] - flag, expect == False
-		[s64] - ???
+		[s64] - parent object id
 		[bit] - ???
 	[bit] - flag, expect == False
-		[u16] - ??? (if > 0 read next block n times?)
-			[u64] - ???
+		[u16] - count
+			[u64] - child object id

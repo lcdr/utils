@@ -21,27 +21,29 @@ with open("packetdefinitions/replica/serialization_header.structs", encoding="ut
 	serialization_header_parser = structparser.StructParser(file.read())
 
 component_name = OrderedDict()
-component_name[108] = "Component 108"
-component_name[61] = "ModuleAssembly"
-component_name[1] = "ControllablePhysics"
-component_name[3] = "SimplePhysics"
-component_name[20] = "RigidBodyPhantomPhysics"
-component_name[30] = "VehiclePhysics 30"
-component_name[40] = "PhantomPhysics"
-component_name[7] = "Destructible"
-component_name[49] = "Switch"
-component_name[26] = "Pet"
-component_name[4] = "Character"
-component_name[17] = "Inventory"
-component_name[5] = "Script"
-component_name[9] = "Skill"
-component_name[60] = "BaseCombatAI"
-component_name[16] = "Vendor"
-component_name[6] = "Bouncer"
-component_name[39] = "ScriptedActivity"
-component_name[71] = "RacingControl"
-component_name[2] = "Render"
-component_name[107] = "Component 107"
+component_name[108] = "Component 108",
+component_name[61] = "ModuleAssembly",
+component_name[1] = "ControllablePhysics",
+component_name[3] = "SimplePhysics",
+component_name[20] = "RigidBodyPhantomPhysics",
+component_name[30] = "VehiclePhysics 30",
+component_name[40] = "PhantomPhysics",
+component_name[7] = "Destructible", "Stats"
+component_name[23] = "Stats", "Collectible"
+component_name[26] = "Pet",
+component_name[4] = "Character",
+component_name[17] = "Inventory",
+component_name[5] = "Script",
+component_name[9] = "Skill",
+component_name[60] = "BaseCombatAI",
+component_name[48] = "Stats", "Rebuild"
+component_name[49] = "Switch",
+component_name[16] = "Vendor",
+component_name[6] = "Bouncer",
+component_name[39] = "ScriptedActivity",
+component_name[71] = "RacingControl",
+component_name[2] = "Render",
+component_name[107] = "Component 107",
 component_name[12] = None
 component_name[31] = None
 component_name[35] = None
@@ -53,15 +55,18 @@ component_name[64] = None
 component_name[65] = None
 component_name[68] = None
 component_name[73] = None
+component_name[104] = None
 component_name[113] = None
 component_name[114] = None
 comp_ids = list(component_name.keys())
 
 comp_parser = {}
-for key, value in component_name.items():
-	if value is not None:
-		with open("packetdefinitions/replica/components/"+value+".structs") as file:
-			comp_parser[key] = structparser.StructParser(file.read())
+for comp_id, indices in component_name.items():
+	if indices is not None:
+		comp_parser[comp_id] = []
+		for index in indices:
+			with open("packetdefinitions/replica/components/"+index+".structs") as file:
+				comp_parser[comp_id].append(structparser.StructParser(file.read()))
 
 norm_parser = {}
 for rootdir, _, files in os.walk("packetdefinitions"):
@@ -167,10 +172,11 @@ class CaptureViewer(viewer.Viewer):
 
 	def load_captures(self, captures):
 		self.tree.set_children("")
+		self.detached_items.clear()
 		self.objects = []
 		print("Loading captures, this might take a while")
-		for capture in captures:
-			print("Loading", capture)
+		for i, capture in enumerate(captures):
+			print("Loading", capture, "[%i/%i]" % (i+1, len(captures)))
 			with zipfile.ZipFile(capture) as capture:
 				files = [i for i in capture.namelist() if "of" not in i]
 
@@ -219,12 +225,14 @@ class CaptureViewer(viewer.Viewer):
 				print("Name for lot", lot, "not found")
 				lot_name = str(lot)
 			component_types = [i[0] for i in self.db.execute("select component_type from ComponentsRegistry where id == "+str(lot)).fetchall()]
-			parsers = []
+			parsers = OrderedDict()
 			try:
 				component_types.sort(key=comp_ids.index)
 				for comp_type in component_types:
 					if component_name[comp_type] is not None:
-						parsers.append((component_name[comp_type], comp_parser[comp_type]))
+						for name, parser in zip(component_name[comp_type], comp_parser[comp_type]):
+							if name not in parsers:
+								parsers[name] = parser
 			except ValueError as e:
 				error = "ERROR: Unknown component "+str(e.args[0].split()[0])+" "+str(component_types)
 			else:
@@ -250,7 +258,7 @@ class CaptureViewer(viewer.Viewer):
 	@staticmethod
 	def parse_serialization(packet, parser_output, parsers, is_creation=False):
 		parser_output.append(serialization_header_parser.parse(packet))
-		for name, parser in parsers:
+		for name, parser in parsers.items():
 			parser_output.text += "\n"+name+"\n\n"
 			parser_output.append(parser.parse(packet, {"creation":is_creation}))
 		if not packet.all_read():
@@ -259,9 +267,9 @@ class CaptureViewer(viewer.Viewer):
 	def parse_serialization_packet(self, packet_name, packet):
 		network_id = packet.read(c_ushort)
 		obj = None
-		for j in self.objects:
-			if j.network_id == network_id:
-				obj = j
+		for i in self.objects:
+			if i.network_id == network_id:
+				obj = i
 				break
 		if obj is None:
 			obj = CaptureObject(network_id=network_id)
@@ -269,7 +277,7 @@ class CaptureViewer(viewer.Viewer):
 			obj.entry = self.tree.insert("", END, text="Unknown", values=("network_id="+str(network_id), ""))
 
 		if obj.lot is None:
-			parsers = []
+			parsers = {}
 			error = "Unknown object"
 		else:
 			_, parsers, error = self.lot_data[obj.lot]
