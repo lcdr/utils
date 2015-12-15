@@ -54,6 +54,7 @@ class Viewer(Frame):
 		for parent, detached_children in self.detached_items.items():
 			for index, item in detached_children:
 				self.tree.reattach(item, parent, index)
+		self.detached_items.clear()
 		if query:
 			self.filter_items(query)
 

@@ -11,7 +11,7 @@ if creation:
 	[float] - ???
 	[float] - ???
 [bit] - flag
-	[u32] - ???, assert == 5
+	[u32] - ???, expect == 5
 [bit] - flag
 	[float] - position x
 	[float] - position y

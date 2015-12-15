@@ -8,7 +8,7 @@ Index 1 ($+834DB0):
 	[float] - rotation y
 	[float] - rotation z
 	[float] - rotation w
-[bit] - flag, assert == True
+[bit] - flag
 	[bit] - flag, expect == False
 		[u32] - ???
 		[float] - ???
