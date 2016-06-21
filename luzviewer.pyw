@@ -1,4 +1,5 @@
 import configparser
+import enum
 import os.path
 import sqlite3
 import sys
@@ -8,7 +9,17 @@ import tkinter.messagebox as messagebox
 from tkinter import END, Menu
 
 import viewer
-from pyraknet.bitstream import BitStream, c_float, c_int64, c_ubyte, c_uint, c_uint64, c_ushort
+from pyraknet.bitstream import BitStream, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort
+
+class PathType(enum.IntEnum):
+	Movement  = 0
+	MovingPlatform = 1
+	Property = 2
+	Camera = 3
+	Spawner = 4
+	Showcase = 5
+	Race = 6
+	Rail = 7
 
 class LUZViewer(viewer.Viewer):
 	def __init__(self):
@@ -40,34 +51,45 @@ class LUZViewer(viewer.Viewer):
 			stream = BitStream(file.read())
 
 		version = stream.read(c_uint)
-		assert version in (40, 41), version
+		assert version in (36, 38, 39, 40, 41), version
 		unknown1 = stream.read(c_uint)
 		world_id = stream.read(c_uint)
-		spawnpoint_pos = stream.read(c_float), stream.read(c_float), stream.read(c_float)
-		spawnpoint_rot = stream.read(c_float), stream.read(c_float), stream.read(c_float), stream.read(c_float)
-
-		zone = self.tree.insert("", END, text="Zone", values=(version, unknown1, world_id, spawnpoint_pos, spawnpoint_rot))
+		if version >= 38:
+			spawnpoint_pos = stream.read(c_float), stream.read(c_float), stream.read(c_float)
+			spawnpoint_rot = stream.read(c_float), stream.read(c_float), stream.read(c_float), stream.read(c_float)
+			zone = self.tree.insert("", END, text="Zone", values=(version, unknown1, world_id, spawnpoint_pos, spawnpoint_rot))
+		else:
+			zone = self.tree.insert("", END, text="Zone", values=(version, unknown1, world_id))
 
 		### scenes
 		scenes = self.tree.insert(zone, END, text="Scenes")
-		for _ in range(stream.read(c_uint)):
+
+		if version >= 37:
+			number_of_scenes = stream.read(c_uint)
+		else:
+			number_of_scenes = stream.read(c_ubyte)
+
+		for _ in range(number_of_scenes):
 			filename = stream.read(str, char_size=1, length_type=c_ubyte)
-			scene_id = stream.read(c_uint)
-			is_audio = stream.read(c_uint)
+			scene_id = stream.read(c_uint64)
 			scene_name = stream.read(str, char_size=1, length_type=c_ubyte)
-			if is_audio:
-				assert scene_name == "Audio"
-			scene = self.tree.insert(scenes, END, text="Scene", values=(filename, scene_id, is_audio, scene_name))
-			assert stream.read(bytes, length=3) == b"\xff\xff\xff"
+			scene = self.tree.insert(scenes, END, text="Scene", values=(filename, scene_id, scene_name))
+			assert stream.read(bytes, length=3)
 			with open(os.path.join(os.path.dirname(luz_path), filename), "rb") as lvl:
 				print("Loading lvl", filename)
-				self.parse_lvl(BitStream(lvl.read()), scene)
+				try:
+					self.parse_lvl(BitStream(lvl.read()), scene)
+				except Exception:
+					import traceback
+					traceback.print_exc()
 		assert stream.read(c_ubyte) == 0
+
 		### terrain
 		filename = stream.read(str, char_size=1, length_type=c_ubyte)
 		name = stream.read(str, char_size=1, length_type=c_ubyte)
 		description = stream.read(str, char_size=1, length_type=c_ubyte)
 		self.tree.insert(zone, END, text="Terrain", values=(filename, name, description))
+
 		### unknown
 		unknowns = self.tree.insert(zone, END, text="Unknowns")
 		for _ in range(stream.read(c_uint)):
@@ -75,9 +97,101 @@ class LUZViewer(viewer.Viewer):
 				unknown1 = stream.read(c_uint64)
 				unknown2 = stream.read(c_float), stream.read(c_float), stream.read(c_float)
 				self.tree.insert(unknowns, END, text="Unknown", values=(unknown1, unknown2))
+
 		remaining_length = stream.read(c_uint)
 		assert len(stream) - stream._read_offset//8 == remaining_length
 		assert stream.read(c_uint) == 1
+
+		### paths
+		paths = self.tree.insert(zone, END, text="Paths")
+		for _ in range(stream.read(c_uint)):
+			path_version = stream.read(c_uint)
+			name = stream.read(str, length_type=c_ubyte)
+			path_type = stream.read(c_uint)
+			unknown1 = stream.read(c_uint)
+			unknown2 = stream.read(c_uint)
+			values = path_version, name, unknown1, unknown2
+
+			if path_type == PathType.MovingPlatform:
+				if path_version >= 18:
+					unknown3 = stream.read(c_ubyte)
+					values += unknown3,
+				elif path_version >= 13:
+					unknown_str = stream.read(str, length_type=c_ubyte)
+					values += unknown_str,
+
+			elif path_type == PathType.Property:
+				unknown3 = stream.read(c_int), stream.read(c_int), stream.read(c_int), stream.read(c_uint64)
+				unknown_str1 = stream.read(str, length_type=c_ubyte)
+				unknown_str2 = stream.read(str, length_type=c_uint)
+				unknown4 = stream.read(c_int), stream.read(c_int), stream.read(c_float)
+				unknown5 = stream.read(c_int), stream.read(c_int)
+				unknown6 = stream.read(c_float), stream.read(c_float), stream.read(c_float), stream.read(c_float)
+				values += unknown3, unknown_str1, unknown_str2, unknown4, unknown5, unknown6
+
+			elif path_type == PathType.Camera:
+				unknown_str = stream.read(str, length_type=c_ubyte)
+				values += unknown_str,
+				if path_version >= 14:
+					unknown3 = stream.read(c_ubyte)
+					values += unknown3,
+
+			elif path_type == PathType.Spawner:
+				spawn_lot = stream.read(c_uint)
+				unknown3 = stream.read(c_uint), stream.read(c_int), stream.read(c_uint)
+				object_id = stream.read(c_int64)
+				unknown4 = stream.read(c_ubyte)
+				values += spawn_lot, unknown3, object_id, unknown4
+
+			path = self.tree.insert(paths, END, text=PathType(path_type).name, values=values)
+
+			for _ in range(stream.read(c_uint)):
+				position = stream.read(c_float), stream.read(c_float), stream.read(c_float)
+
+				waypoint_values = position,
+
+				if path_type == PathType.MovingPlatform:
+					rotation = stream.read(c_float), stream.read(c_float), stream.read(c_float), stream.read(c_float)
+					waypoint_unknown2 = stream.read(c_ubyte)
+					waypoint_unknown3 = stream.read(c_float), stream.read(c_float)
+					waypoint_values += rotation, waypoint_unknown2, waypoint_unknown3
+
+					if path_version >= 13:
+						waypoint_audio_guid_1 = stream.read(str, length_type=c_ubyte)
+						waypoint_audio_guid_2 = stream.read(str, length_type=c_ubyte)
+						waypoint_values += waypoint_audio_guid_1, waypoint_audio_guid_2
+
+				elif path_type == PathType.Camera:
+					waypoint_unknown1 = (
+					stream.read(c_float), stream.read(c_float), stream.read(c_float),
+					stream.read(c_float), stream.read(c_float), stream.read(c_float),
+					stream.read(c_float), stream.read(c_float), stream.read(c_float))
+					waypoint_values += waypoint_unknown1,
+
+				elif path_type == PathType.Spawner:
+					rotation = stream.read(c_float), stream.read(c_float), stream.read(c_float), stream.read(c_float)
+					waypoint_values += rotation,
+
+				elif path_type == PathType.Race:
+					waypoint_unknown1 = stream.read(c_float), stream.read(c_float), stream.read(c_float), stream.read(c_float)
+					waypoint_unknown2 = stream.read(c_ubyte), stream.read(c_ubyte)
+					waypoint_unknown3 = stream.read(c_float), stream.read(c_float), stream.read(c_float)
+					waypoint_values += waypoint_unknown1, waypoint_unknown2, waypoint_unknown3
+
+				elif path_type == PathType.Rail:
+					waypoint_unknown1 = stream.read(c_float), stream.read(c_float), stream.read(c_float), stream.read(c_float)
+					waypoint_values += waypoint_unknown1,
+					if path_version >= 17:
+						waypoint_unknown2 = stream.read(c_float)
+						waypoint_values += waypoint_unknown2,
+
+				waypoint = self.tree.insert(path, END, text="Waypoint", values=waypoint_values)
+
+				if path_type in (PathType.Movement, PathType.Spawner, PathType.Rail):
+					for _ in range(stream.read(c_uint)):
+						config_name = stream.read(str, length_type=c_ubyte)
+						config_type_and_value = stream.read(str, length_type=c_ubyte)
+						self.tree.insert(waypoint, END, text="Config", values=(config_name, config_type_and_value))
 
 	def parse_lvl(self, stream, scene):
 		while not stream.all_read():
@@ -127,7 +241,7 @@ class LUZViewer(viewer.Viewer):
 		if item_type == "Zone":
 			cols = "version", "unknown1", "world_id", "spawnpoint_pos", "spawnpoint_rot"
 		elif item_type == "Scene":
-			cols = "filename", "scene_id", "is_audio", "scene_name"
+			cols = "filename", "scene_id", "scene_name"
 		elif item_type == "Terrain":
 			cols = "filename", "name", "description"
 		elif item_type == "Unknown":
