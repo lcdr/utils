@@ -1,7 +1,7 @@
 [bit] - flag
-	[bit] - flag, expect == False
+	[bit] - flag
 		[s64] - parent object id
 		[bit] - ???
-	[bit] - flag, expect == False
+	[bit] - flag
 		[u16] - count
 			[u64] - child object id
