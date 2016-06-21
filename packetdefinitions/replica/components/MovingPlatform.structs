@@ -1,0 +1,42 @@
+Component 25 - Moving Platform
+flag=[bit] - flag
+[bit] - flag
+	[bit] - ???
+		[u16] - path name length
+			[u16] - path name
+		[u32] - ???
+		[bit] - ???
+if flag:
+	[bit] - ???
+		subcomponent_type=[u32] - subcomponent type, 4 - mover, 5 - simple mover?, expect in (4, 5)
+		if subcomponent_type == 4:
+			[bit] - ???
+				[u32] - ???
+				[s32] - ???
+				[bit] - ???
+				[bit] - based on this and some other criteria some other things are also included?
+				[float] - ???
+
+				[float] - target position x
+				[float] - target position y
+				[float] - target position z
+
+				[u32] - current waypoint index?
+				[u32] - next waypoint index?
+
+				[float] - ???
+				[u32] - ???
+		if subcomponent_type == 5:
+			[bit] - flag
+				[bit] - flag
+					[float] - position x?
+					[float] - position y?
+					[float] - position z?
+					[float] - rotation x?
+					[float] - rotation y?
+					[float] - rotation z?
+					[float] - rotation w?
+			[bit] - flag
+				[u32] - ???
+				[u32] - ???
+				[bit] - ???
