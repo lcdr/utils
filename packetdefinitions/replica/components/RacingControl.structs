@@ -3,7 +3,7 @@ Index 1 ($+949620):
 start of something
 start of ScriptedActivity
 [bit] - flag
-	[u32] - length
+	[u32] - count
 		[u64] - player object id
 		constant size 10 loop
 		[float] - ???
