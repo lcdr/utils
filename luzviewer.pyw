@@ -90,13 +90,22 @@ class LUZViewer(viewer.Viewer):
 		description = stream.read(str, char_size=1, length_type=c_ubyte)
 		self.tree.insert(zone, END, text="Terrain", values=(filename, name, description))
 
-		### unknown
-		unknowns = self.tree.insert(zone, END, text="Unknowns")
+		### scene transitions
+		scene_transitions = self.tree.insert(zone, END, text="Scene Transitions")
 		for _ in range(stream.read(c_uint)):
-			for _ in range(2):
-				unknown1 = stream.read(c_uint64)
-				unknown2 = stream.read(c_float), stream.read(c_float), stream.read(c_float)
-				self.tree.insert(unknowns, END, text="Unknown", values=(unknown1, unknown2))
+			scene_transition_values = ()
+			if version < 40:
+				scene_transition_values += stream.read(str, char_size=1, length_type=c_ubyte),
+				scene_transition_values += stream.read(c_float),
+			scene_transition = self.tree.insert(scene_transitions, END, text="Scene Transition", values=scene_transition_values)
+			if version < 39:
+				transition_point_count = 5
+			else:
+				transition_point_count = 2
+			for _ in range(transition_point_count):
+				transition_point_scene_id = stream.read(c_uint64),
+				transition_point_position = stream.read(c_float), stream.read(c_float), stream.read(c_float)
+				self.tree.insert(scene_transition, END, text="Transition Point", values=(transition_point_scene_id, transition_point_position))
 
 		remaining_length = stream.read(c_uint)
 		assert len(stream) - stream._read_offset//8 == remaining_length
@@ -239,15 +248,15 @@ class LUZViewer(viewer.Viewer):
 		item = self.tree.selection()[0]
 		item_type = self.tree.item(item, "text")
 		if item_type == "Zone":
-			cols = "version", "unknown1", "world_id", "spawnpoint_pos", "spawnpoint_rot"
+			cols = "Version", "unknown1", "World ID", "Spawnpoint Pos", "Spawnpoint Rot"
 		elif item_type == "Scene":
-			cols = "filename", "scene_id", "scene_name"
+			cols = "Filename", "Scene ID", "Scene Name"
 		elif item_type == "Terrain":
-			cols = "filename", "name", "description"
-		elif item_type == "Unknown":
-			cols = "unknown1", "unknown2"
+			cols = "Filename", "Name", "Description"
+		elif item_type == "Transition Point":
+			cols = "Scene ID", "Position"
 		elif item_type == "Object":
-			cols = "object_id", "lot", "unknown1", "unknown2", "position", "rotation", "scale"
+			cols = "Object ID", "LOT", "unknown1", "unknown2", "Position", "Rotation", "Scale"
 		else:
 			cols = ()
 		if cols:
