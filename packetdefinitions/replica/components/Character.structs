@@ -68,8 +68,7 @@ if creation:
 	[u64] - Number of 1st Place Race Finishes
 	[bit] - ???
 	[bit] - ???
-		[u16] - count of characters
-			[u16] - some LDF string?
+		[u16-wstring] - some LDF string?
 [bit] - flag
 	[bit] - flag?, assert == False
 	[bit] - ???, assert == False

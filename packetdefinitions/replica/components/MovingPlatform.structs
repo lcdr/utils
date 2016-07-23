@@ -2,8 +2,7 @@ Component 25 - Moving Platform
 flag=[bit] - flag
 [bit] - flag
 	[bit] - ???
-		[u16] - path name length
-			[u16] - path name
+		[u16-wstring] - path name
 		[u32] - ???
 		[bit] - ???
 if flag:

@@ -3,12 +3,10 @@
 	[u16] - NetworkID
 objectID=[s64] - objectID
 [s32] - LOT
-[u8] - length
-	[u16] - name
+[u8-wstring] - name
 [u32] - time_since_created_on_server?
 [bit] - flag, expect == False
-	[u32] - size of following struct
-		[u8] - compressed data
+	[compressed_ldf] - config variables?
 [bit] - trigger_id, expect == False
 [bit] - flag
 	[s64] - spawner object ID

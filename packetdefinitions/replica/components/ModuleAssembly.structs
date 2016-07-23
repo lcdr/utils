@@ -5,5 +5,4 @@ if creation:
 		[bit] - flag
 			[s64] - ???
 		[bit] - ???
-		[u16] - length
-			[u16] - wchar
+		[u16-wstring] - ???

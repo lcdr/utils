@@ -8,18 +8,34 @@ import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
 import xml.etree.ElementTree as ET
 import zipfile
+import zlib
 from collections import OrderedDict
 from tkinter import BooleanVar, END, Menu
 
 import amf3
 import structparser
 import viewer
-from pyraknet.bitstream import BitStream, c_bit, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort
+import ldf
+from pyraknet.bitstream import BitStream, c_bit, c_bool, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort
+
+def compressed_ldf_handler(stream):
+	size = stream.read(c_uint)
+	is_compressed = stream.read(c_bool)
+	if is_compressed:
+		uncompressed_size = stream.read(c_uint)
+		uncompressed = zlib.decompress(stream.read(bytes, length=stream.read(c_uint)))
+		assert len(uncompressed) == uncompressed_size
+	else:
+		uncompressed = stream.read(bytes, length=size)
+	return ldf.from_ldf(BitStream(uncompressed))
+
+type_handlers = {}
+type_handlers["compressed_ldf"] = compressed_ldf_handler
 
 with open("packetdefinitions/replica/creation_header.structs", encoding="utf-8") as file:
-	creation_header_parser = structparser.StructParser(file.read())
+	creation_header_parser = structparser.StructParser(file.read(), type_handlers)
 with open("packetdefinitions/replica/serialization_header.structs", encoding="utf-8") as file:
-	serialization_header_parser = structparser.StructParser(file.read())
+	serialization_header_parser = structparser.StructParser(file.read(), type_handlers)
 
 component_name = OrderedDict()
 component_name[108] = "Component 108",
@@ -69,13 +85,13 @@ for comp_id, indices in component_name.items():
 		comp_parser[comp_id] = []
 		for index in indices:
 			with open("packetdefinitions/replica/components/"+index+".structs") as file:
-				comp_parser[comp_id].append(structparser.StructParser(file.read()))
+				comp_parser[comp_id].append(structparser.StructParser(file.read(), type_handlers))
 
 norm_parser = {}
 for rootdir, _, files in os.walk("packetdefinitions"):
 	for filename in files:
 		with open(rootdir+"/"+filename) as file:
-			norm_parser[filename[:filename.rindex(".")]] = structparser.StructParser(file.read())
+			norm_parser[filename[:filename.rindex(".")]] = structparser.StructParser(file.read(), type_handlers)
 	break
 
 class ParserOutput:
@@ -99,7 +115,7 @@ class ParserOutput:
 				self.tags.append("error")
 				import traceback
 				traceback.print_tb(tb)
-			self.text = exc_name+" "+str(exc_value)+"\n"+self.text
+			self.text = exc_name+" "+str(exc_type.__name__)+": "+str(exc_value)+"\n"+self.text
 			return True
 
 	def append(self, structs):
@@ -256,7 +272,7 @@ class CaptureViewer(viewer.Viewer):
 
 		obj = CaptureObject(network_id=network_id, object_id=object_id, lot=lot)
 		self.objects.append(obj)
-		obj.entry = self.tree.insert("", END, text=packet_name, values=(id_, parser_output.text), tags=parser_output.tags)
+		obj.entry = self.tree.insert("", END, text=packet_name, values=(id_, parser_output.text.replace("{", "<crlbrktopen>").replace("}", "<crlbrktclose>").replace("\\", "<backslash>")), tags=parser_output.tags)
 
 	@staticmethod
 	def parse_serialization(packet, parser_output, parsers, is_creation=False):
@@ -292,7 +308,7 @@ class CaptureViewer(viewer.Viewer):
 			parser_output.tags.append("error")
 		else:
 			error = ""
-		self.tree.insert(obj.entry, END, text=packet_name, values=(error, parser_output.text), tags=parser_output.tags)
+		self.tree.insert(obj.entry, END, text=packet_name, values=(error, parser_output.text.replace("{", "<crlbrktopen>").replace("}", "<crlbrktclose>").replace("\\", "<backslash>")), tags=parser_output.tags)
 
 	def parse_game_message(self, packet_name, packet):
 		object_id = packet.read(c_int64)

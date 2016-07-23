@@ -9,7 +9,5 @@ Index 1 ($+8D1270):
 		[s64] - ???
 	[bit] - flag, expect == False
 		[u32] - ???
-		[u8] - length
-			[u16] - ???
-		[u8] - length
-			[u16] - ???
+		[u8-wstring] - pet name
+		[u8-wstring] - pet owner name

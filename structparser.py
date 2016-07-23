@@ -8,8 +8,6 @@ from collections import namedtuple
 from pyraknet.bitstream import BitStream, c_bit, c_float, c_double, c_int8, c_uint8, c_int16, c_uint16, c_int32, c_uint32, c_int64, c_uint64
 
 VAR_CHARS = r"[^ \t\[\]]+"
-BITSTREAM_TYPES = {"bit": c_bit, "float": c_float, "double": c_double, "s8": c_int8, "u8": c_uint8, "s16": c_int16, "u16": c_uint16, "s32": c_int32, "u32": c_uint32, "s64": c_int64, "u64": c_uint64}
-TYPES_RE = "("+"|".join(BITSTREAM_TYPES.keys())+")"
 
 DEFINITION_SYNTAX = re.compile(r"""
 	^(?P<indent>\t*)                         # Indentation
@@ -21,7 +19,7 @@ DEFINITION_SYNTAX = re.compile(r"""
 	|
 	((?P<var_assign>"""+VAR_CHARS+r""")=)?   # Assign this struct a variable so the value can be back-referenced later
 	\[
-	(?P<type>"""+TYPES_RE+r""")              # Struct type
+	(?P<type>.*)                             # Struct type
 	\]
 	\ -\ (?P<description>.*?)                # Description for the struct
 	(,\ expect\ (?P<expect>(.+?)))?          # Expect the value to be like this expression. Struct attribute 'unexpected' will be None if no expects, True if any expects are False, or False if all expects are True.
@@ -37,17 +35,38 @@ StructDefinition = namedtuple("struct_token", ("var_assign", "type", "descriptio
 Structure = namedtuple("Structure", ("level", "description", "value", "unexpected"))
 
 class StructParser:
-	def __init__(self, struct_defs):
+	def __init__(self, struct_defs, type_handlers={}):
 		"""
 		Set up the parser with the structure definitions.
 		Arguments:
 			struct_defs: A string of structure definitions in my custom format (currently unnamed), see the documentation of that for details.
+			type_handlers: Parsing handlers for custom types, provided as {"type": handler_func}.
 		"""
 		self._variables = {}
 		struct_defs = struct_defs.splitlines()
 		struct_defs = [re.search(DEFINITION_SYNTAX, struct).groupdict() for struct in struct_defs if re.search(DEFINITION_SYNTAX, struct) is not None] # Filter out lines not matching the syntax
 
 		self.defs = self._to_tree(iter(struct_defs))[0]
+
+		self._type_handlers = {}
+		self._type_handlers["bit"] = lambda stream: stream.read(c_bit)
+		self._type_handlers["float"] = lambda stream: stream.read(c_float)
+		self._type_handlers["double"] = lambda stream: stream.read(c_double)
+		self._type_handlers["s8"] = lambda stream: stream.read(c_int8)
+		self._type_handlers["u8"] = lambda stream: stream.read(c_uint8)
+		self._type_handlers["s16"] = lambda stream: stream.read(c_int16)
+		self._type_handlers["u16"] = lambda stream: stream.read(c_uint16)
+		self._type_handlers["s32"] = lambda stream: stream.read(c_int32)
+		self._type_handlers["u32"] = lambda stream: stream.read(c_uint32)
+		self._type_handlers["s64"] = lambda stream: stream.read(c_int64)
+		self._type_handlers["u64"] = lambda stream: stream.read(c_uint64)
+		# string types
+		self._type_handlers["u8-string"] = lambda stream: stream.read(str, char_size=1, length_type=c_uint8)
+		self._type_handlers["u16-string"] = lambda stream: stream.read(str, char_size=1, length_type=c_uint16)
+
+		self._type_handlers["u8-wstring"] = lambda stream: stream.read(str, char_size=2, length_type=c_uint8)
+		self._type_handlers["u16-wstring"] = lambda stream: stream.read(str, char_size=2, length_type=c_uint16)
+		self._type_handlers.update(type_handlers)
 
 	def parse(self, data, variables=None):
 		"""
@@ -112,7 +131,7 @@ class StructParser:
 		if def_["break"] is not None:
 			return BreakStatement()
 
-		type_ = BITSTREAM_TYPES[def_["type"]]
+		type_ = def_["type"]
 
 		if def_["expect"] is not None:
 			expects = [compile("value "+i, "<expect>", "eval") for i in def_["expect"].split(" and ")]
@@ -142,7 +161,7 @@ class StructParser:
 				elif isinstance(def_, BreakStatement):
 					return True
 				else:
-					value = stream.read(def_.type)
+					value = self._type_handlers[def_.type](stream)
 
 					if def_.expects:
 						for expression in def_.expects:
