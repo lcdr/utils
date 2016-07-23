@@ -13,8 +13,7 @@ Index 1 ($+952860):
 		[bit] - flag
 			[u32] - ???, expect == 4
 		[bit] - flag
-			[u32] - length of following structure
-				[u8] - compressed data
+			[compressed_ldf] - extra data
 		[bit] - ??? (perhaps a flag that specifies if the item gets loaded or if data needs to be retrieved from the cdclient database?), expect == True
 [bit] - flag
 	[u32] - ???, assert == 0

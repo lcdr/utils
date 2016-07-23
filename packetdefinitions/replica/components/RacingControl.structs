@@ -38,8 +38,7 @@ end of ScriptedActivity
 end of something
 [bit] - flag
 	[u16] - remaining laps?
-	[u16] - length
-		[u16] - path name
+	[u16-wstring] - path name
 [bit] - flag
 	[bit] - flag
 		[s64] - ???
