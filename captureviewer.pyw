@@ -1,6 +1,7 @@
 import configparser
 import math
 import os
+import pprint
 import sqlite3
 import sys
 import tkinter.filedialog as filedialog
@@ -305,53 +306,55 @@ class CaptureViewer(viewer.Viewer):
 			obj.entry = entry = self.tree.insert("", END, text="Unknown", values=("object_id="+str(object_id), ""))
 
 		msg_id = packet.read(c_ushort)
-		if msg_id <= 0x80:
+		if msg_id <= 128:
 			msg_id -= 1
-		elif msg_id <= 0xf9:
+		elif msg_id <= 249:
 			msg_id -= 2
-		elif msg_id <= 0x1c0:
+		elif msg_id <= 448:
 			msg_id += 1
-		elif msg_id <= 0x1fd:
+		elif msg_id <= 509:
 			msg_id -= 1
-		elif msg_id <= 0x208:
+		elif msg_id <= 520:
 			msg_id -= 5
-		elif msg_id <= 0x223:
+		elif msg_id <= 547:
 			msg_id -= 6
-		elif msg_id <= 0x240:
+		elif msg_id <= 576:
 			msg_id -= 8
-		elif msg_id <= 0x2a3:
+		elif msg_id <= 675:
 			msg_id -= 10
-		elif msg_id <= 0x2b5:
+		elif msg_id <= 693:
 			msg_id -= 12
-		elif msg_id <= 0x2d5:
+		elif msg_id <= 725:
 			msg_id -= 7
-		elif msg_id <= 0x30d:
+		elif msg_id <= 781:
 			msg_id -= 10
-		elif msg_id <= 0x353:
+		elif msg_id <= 851:
 			msg_id -= 9
-		elif msg_id <= 0x37b:
+		elif msg_id <= 891:
 			msg_id -= 10
-		elif msg_id <= 0x3bd:
+		elif msg_id <= 957:
 			msg_id -= 9
-		elif msg_id <= 0x3d4:
+		elif msg_id <= 980:
 			msg_id -= 30
-		elif msg_id <= 0x3ec:
+		elif msg_id <= 1004:
 			msg_id -= 32
-		elif msg_id <= 0x433:
+		elif msg_id <= 1081:
 			msg_id -= 33
-		elif msg_id <= 0x4cf:
+		elif msg_id <= 1238:
 			msg_id -= 34
-		elif msg_id <= 0x51d:
+		elif msg_id <= 1310:
 			msg_id -= 31
-		elif msg_id <= 0x58b:
+		elif msg_id <= 1419:
 			msg_id -= 30
-		elif msg_id <= 0x5e7:
+		elif msg_id <= 1516:
 			msg_id -= 29
-		elif msg_id <= 0x637:
+		elif msg_id <= 1594:
 			msg_id -= 28
-		elif msg_id <= 0x670:
+		elif msg_id <= 1648:
 			msg_id -= 27
-		elif msg_id <= 0x6e7:
+		elif msg_id <= 1676:
+			msg_id -= 28
+		elif msg_id <= 1767:
 			msg_id -= 26
 
 		try:
@@ -465,6 +468,33 @@ class CaptureViewer(viewer.Viewer):
 					for _ in range(packet.read(c_uint)):
 						path.append((packet.read(c_float), packet.read(c_float), packet.read(c_float)))
 					attr_values["path"] = path
+
+				elif msg_name == "PropertySelectQuery":
+					attr_values["navOffset"] = packet.read(c_int)
+					attr_values["bThereAreMore"] = packet.read(c_bit)
+					attr_values["myCloneID"] = packet.read(c_int)
+					attr_values["bHasFeaturedProperty"] = packet.read(c_bit)
+					attr_values["bWasFriends"] = packet.read(c_bit)
+					properties = []
+					attr_values["properties"] = properties
+					for _ in range(packet.read(c_uint)):
+						property = OrderedDict()
+						property["cloneID"] = packet.read(c_int)
+						property["ownerName"] = packet.read(str, length_type=c_uint)
+						property["name"] = packet.read(str, length_type=c_uint)
+						property["description"] = packet.read(str, length_type=c_uint)
+						property["reputation"] = packet.read(c_uint)
+						property["isBff"] = packet.read(c_bit)
+						property["isFriend"] = packet.read(c_bit)
+						property["isModeratedApproved"] = packet.read(c_bit)
+						property["isAlt"] = packet.read(c_bit)
+						property["isOwned"] = packet.read(c_bit)
+						property["accessType"] = packet.read(c_uint)
+						property["dateLastPublished"] = packet.read(c_uint)
+						property["performanceCost"] = packet.read(c_uint64)
+
+						properties.append(property)
+
 				elif msg_name == "ModularBuildFinish":
 					lots = []
 					for _ in range(packet.read(c_ubyte)):
@@ -476,6 +506,24 @@ class CaptureViewer(viewer.Viewer):
 						selections.append((packet.read(c_uint), packet.read(c_uint)))
 					attr_values["currentSelections"] = selections
 					attr_values["clientFailed"] = packet.read(c_bit)
+				elif msg_name == "GetModelsOnProperty":
+					models = []
+					for _ in range(packet.read(c_uint)):
+						models.append((packet.read(c_int64), packet.read(c_int64)))
+					attr_values["models"] = models
+				elif msg_name == "MatchRequest":
+					attr_values["activator"] = packet.read(c_int64)
+					choices = packet.read(str, length_type=c_uint)
+					if choices:
+						assert packet.read(c_ushort) == 0 # for some reason has a null terminator
+					attr_values["playerChoices"] = choices
+					attr_values["type"] = packet.read(c_int)
+					attr_values["value"] = packet.read(c_int)
+				elif msg_name == "TeamCreateLocal":
+					team_members = []
+					for _ in range(packet.read(c_uint)):
+						team_members.append((packet.read(c_int64), packet.read(c_bit)))
+					attr_values["team_members"] = team_members
 				else:
 					raise NotImplementedError("Custom serialization")
 				values = "\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()])
@@ -487,10 +535,7 @@ class CaptureViewer(viewer.Viewer):
 
 				for attr in attrs:
 					if attr.get("returnValue") is not None:
-						if attr.get("returnValue") == "false":
-							continue
-						else:
-							raise NotImplementedError(attr.get("name"), "returnValue")
+						continue
 					type_ = attr.get("type")
 					default = attr.get("default")
 					if type_ == "bool": # bools don't have default-flags
@@ -520,6 +565,8 @@ class CaptureViewer(viewer.Viewer):
 								if value == obj.object_id:
 									value = str(value)+" <"+self.tree.item(obj.entry, "values")[0]+">"
 									break
+					elif type_ == "LWOZONEID":
+						value = packet.read(c_ushort), packet.read(c_ushort), packet.read(c_uint)
 					elif type_ == "float":
 						value = packet.read(c_float)
 					elif type_ == "BinaryBuffer":
@@ -527,13 +574,9 @@ class CaptureViewer(viewer.Viewer):
 						value = packet.read(bytes, length=length)
 					elif type_ == "std::string":
 						length = packet.read(c_uint)
-						if length > 255: # in case this isn't the right message after all and we read a way too high value
-							raise ValueError
 						value = packet.read(str, char_size=1, allocated_length=length)
 					elif type_ == "std::wstring":
 						length = packet.read(c_uint)
-						if length > 255: # in case this isn't the right message after all and we read a way too high value
-							raise ValueError
 						value = packet.read(str, char_size=2, allocated_length=length*2)
 					elif type_ == "NiPoint3":
 						value = packet.read(c_float), packet.read(c_float), packet.read(c_float)
@@ -552,7 +595,7 @@ class CaptureViewer(viewer.Viewer):
 						value = packet.read(c_uint)
 						value = self.gamemsg_global_enums[type_][value]+" ("+str(value)+")"
 					else:
-						raise NotImplementedError(type_)
+						raise NotImplementedError("Unknown type", type_)
 					attr_values[attr.get("name")] = value
 			if not packet.all_read():
 				raise ValueError
@@ -566,7 +609,7 @@ class CaptureViewer(viewer.Viewer):
 			values = ("likely not "+msg_name, "Error while parsing, likely not this message!\n"+str(e)+"\nlen: "+str(len(packet)-10)+"\n"+"\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()]))
 			tags = ["error"]
 		else:
-			values = (msg_name, "\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()]))
+			values = (msg_name, "\n".join(["%s = %s" % (a, pprint.pformat(b)) for a, b in attr_values.items()]))
 			tags = []
 		self.tree.insert(entry, END, text=packet_name, values=values, tags=tags)
 
