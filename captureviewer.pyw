@@ -64,6 +64,7 @@ component_name[71] = "RacingControl",
 component_name[75] = "Exhibit",
 component_name[2] = "Render",
 component_name[107] = "Component 107",
+component_name[69] = "Trigger",
 component_name[12] = None
 component_name[27] = None
 component_name[31] = None
@@ -164,6 +165,7 @@ class CaptureViewer(viewer.Viewer):
 			self.parse_game_messages = BooleanVar(value=False)
 		self.parse_normal_packets = BooleanVar(value=config["parse"]["normal_packets"])
 		self.retry_with_script_component = BooleanVar(value=config["parse"]["retry_with_script_component"])
+		self.retry_with_trigger_component = BooleanVar(value=config["parse"]["retry_with_trigger_component"])
 		self.create_widgets()
 
 	def create_widgets(self):
@@ -177,6 +179,7 @@ class CaptureViewer(viewer.Viewer):
 			parse_menu.add_checkbutton(label="Parse Game Messages", variable=self.parse_game_messages)
 		parse_menu.add_checkbutton(label="Parse Normal Packets", variable=self.parse_normal_packets)
 		parse_menu.add_checkbutton(label="Retry parsing with script component if failed", variable=self.retry_with_script_component)
+		parse_menu.add_checkbutton(label="Retry parsing with trigger component if failed", variable=self.retry_with_trigger_component)
 		menubar.add_cascade(label="Parse", menu=parse_menu)
 		self.master.config(menu=menubar)
 
@@ -232,7 +235,7 @@ class CaptureViewer(viewer.Viewer):
 						packet = BitStream(capture.read(packet_name))
 						self.parse_normal_packet(packet_name, packet)
 
-	def parse_creation(self, packet_name, packet, is_retry=False):
+	def parse_creation(self, packet_name, packet, retry_with_components=[]):
 		packet.skip_read(1)
 		has_network_id = packet.read(c_bit)
 		assert has_network_id
@@ -249,8 +252,8 @@ class CaptureViewer(viewer.Viewer):
 				print("Name for lot", lot, "not found")
 				lot_name = str(lot)
 			component_types = [i[0] for i in self.db.execute("select component_type from ComponentsRegistry where id == "+str(lot)).fetchall()]
-			if is_retry:
-				component_types.append(5) # script component
+			component_types.extend(retry_with_components)
+
 			parsers = OrderedDict()
 			try:
 				component_types.sort(key=comp_ids.index)
@@ -278,15 +281,21 @@ class CaptureViewer(viewer.Viewer):
 				try:
 					self.parse_serialization(packet, parser_output, parsers, is_creation=True)
 				except (AssertionError, IndexError):
-					if self.retry_with_script_component and not is_retry:
-						print("retrying", packet_name)
-						del self.lot_data[lot]
-						packet._read_offset = 0
-						self.parse_creation(packet_name, packet, is_retry=True)
-						return
-					else:
+					if retry_with_components:
 						print("retry was not able to resolve parsing error")
 						raise
+					retry_with_components = []
+					if self.retry_with_script_component.get():
+						retry_with_components.append(5)
+					elif self.retry_with_trigger_component.get():
+						retry_with_components.append(69)
+
+					if retry_with_components:
+						print("retrying with", retry_with_components, packet_name)
+						del self.lot_data[lot]
+						packet._read_offset = 0
+						self.parse_creation(packet_name, packet, retry_with_components)
+						return
 
 		obj = CaptureObject(network_id=network_id, object_id=object_id, lot=lot)
 		self.objects.append(obj)
