@@ -21,12 +21,12 @@ if creation:
 	[bit] - ???
 	[bit] - ???, assert == False
 	[bit] - ???, assert == False
-	[float] - max health, assert == maxhealth
-	[float] - max armor, assert == maxarmor
-	[float] - max imagination, assert == maximag
+	[float] - max health, expect == maxhealth
+	[float] - max armor, expect == maxarmor
+	[float] - max imagination, expect == maximag
 	[u32] - count
 		[s32] - faction id
-	trigger=[bit] - flag
+	trigger=[bit] - is smashable
 	if creation:
 		[bit] - flag
 		[bit] - flag, assert == False

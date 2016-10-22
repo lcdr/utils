@@ -17,10 +17,10 @@ start of ScriptedActivity
 end of ScriptedActivity
 [bit] - flag
 	[u32] - rebuild state
-	[bit] - ???
-	[bit] - ???
-	[float] - ???
-	[u32] - ???
+	[bit] - success
+	[bit] - enabled
+	[float] - rebuild time
+	[float] - a time related to paused rebuilds, expect == 0
 	if creation:
 		[bit] - ???
 			[u32] - ???

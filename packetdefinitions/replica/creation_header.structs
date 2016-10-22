@@ -13,7 +13,7 @@ objectID=[s64] - objectID
 [bit] - flag
 	[u32] - spawner_node_id
 [bit] - flag
-	[float] - ???
+	[float] - object scale
 [bit] - flag, assert == False
 	[u8] - objectWorldState?
 [bit] - flag, assert == False

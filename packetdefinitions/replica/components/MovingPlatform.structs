@@ -10,20 +10,20 @@ if flag:
 		subcomponent_type=[u32] - subcomponent type, 4 - mover, 5 - simple mover?, expect in (4, 5)
 		if subcomponent_type == 4:
 			[bit] - ???
-				[u32] - ???
+				[u32] - state
 				[s32] - ???
 				[bit] - ???
 				[bit] - based on this and some other criteria some other things are also included?
 				[float] - ???
 
-				[float] - target position x
-				[float] - target position y
-				[float] - target position z
+				[float] - unexpected position x
+				[float] - unexpected position y
+				[float] - unexpected position z
 
-				[u32] - current waypoint index?
-				[u32] - next waypoint index?
+				[u32] - current waypoint index
+				[u32] - next waypoint index
 
-				[float] - ???
+				[float] - idle time elapsed
 				[u32] - ???
 		if subcomponent_type == 5:
 			[bit] - flag
