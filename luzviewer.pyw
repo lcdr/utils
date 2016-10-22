@@ -21,6 +21,11 @@ class PathType(enum.IntEnum):
 	Race = 6
 	Rail = 7
 
+class PathBehavior(enum.IntEnum):
+	Loop = 0
+	Bounce = 1
+	Once = 2
+
 class LUZViewer(viewer.Viewer):
 	def __init__(self):
 		super().__init__()
@@ -118,8 +123,8 @@ class LUZViewer(viewer.Viewer):
 			name = stream.read(str, length_type=c_ubyte)
 			path_type = stream.read(c_uint)
 			unknown1 = stream.read(c_uint)
-			unknown2 = stream.read(c_uint)
-			values = path_version, name, unknown1, unknown2
+			behavior = PathBehavior(stream.read(c_uint))
+			values = path_version, name, unknown1, behavior
 
 			if path_type == PathType.MovingPlatform:
 				if path_version >= 18:
