@@ -37,7 +37,7 @@ if creation:
 	[u64] - accountID (in xml data and chardata packet)
 	[u64] - "llog" from xml data
 	[u64] - ???
-	[u64] - lego score (from xml data)
+	[u64] - lego score
 	[bit] - is player free to play
 	[u64] - Total Amount of Currency Collected
 	[u64] - Number of Bricks Collected
@@ -67,8 +67,8 @@ if creation:
 	[u64] - Number of Races finished
 	[u64] - Number of 1st Place Race Finishes
 	[bit] - ???
-	[bit] - ???
-		[u16-wstring] - some LDF string?
+	[bit] - is player landing by rocket
+		[u16-wstring] - LDF info of rocket modules
 [bit] - flag
 	[bit] - flag?, assert == False
 	[bit] - ???, assert == False
@@ -76,7 +76,7 @@ if creation:
 	[bit] - ???, assert == False
 	[u8] - ???, assert == 0
 [bit] - flag
-	[u32] - ???
+	[u32] - if this is 1 the character's head glows, expect in (0, 1)
 [bit] - flag (this and below was in a separate function in the code)
 	[s64] - ???
 	[u8] - ??? (count for next struct?)
