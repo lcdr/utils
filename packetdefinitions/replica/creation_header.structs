@@ -7,7 +7,7 @@ objectID=[s64] - objectID
 [u32] - time_since_created_on_server?
 [bit] - flag, expect == False
 	[compressed_ldf] - config variables?
-[bit] - trigger_id, expect == False
+[bit] - has trigger component
 [bit] - flag
 	[s64] - spawner object ID
 [bit] - flag
