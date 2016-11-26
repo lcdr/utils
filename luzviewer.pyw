@@ -80,13 +80,15 @@ class LUZViewer(viewer.Viewer):
 			scene_name = stream.read(str, char_size=1, length_type=c_ubyte)
 			scene = self.tree.insert(scenes, END, text="Scene", values=(filename, scene_id, scene_name))
 			assert stream.read(bytes, length=3)
-			with open(os.path.join(os.path.dirname(luz_path), filename), "rb") as lvl:
-				print("Loading lvl", filename)
-				try:
-					self.parse_lvl(BitStream(lvl.read()), scene)
-				except Exception:
-					import traceback
-					traceback.print_exc()
+			lvl_path = os.path.join(os.path.dirname(luz_path), filename)
+			if os.path.exists(lvl_path):
+				with open(lvl_path, "rb") as lvl:
+					print("Loading lvl", filename)
+					try:
+						self.parse_lvl(BitStream(lvl.read()), scene)
+					except Exception:
+						import traceback
+						traceback.print_exc()
 		assert stream.read(c_ubyte) == 0
 
 		### terrain
@@ -208,46 +210,63 @@ class LUZViewer(viewer.Viewer):
 						self.tree.insert(waypoint, END, text="Config", values=(config_name, config_type_and_value))
 
 	def parse_lvl(self, stream, scene):
-		while not stream.all_read():
-			assert stream._read_offset//8 % 16 == 0 # seems everything is aligned like this?
-			start_pos = stream._read_offset//8
-			assert stream.read(bytes, length=4) == b"CHNK"
-			chunktype = stream.read(c_uint)
-			assert stream.read(c_ushort) == 1
-			assert stream.read(c_ushort) in (1, 2)
-			chunk_length = stream.read(c_uint)
-			data_pos = stream.read(c_uint)
-			stream._read_offset = data_pos * 8
-			assert stream._read_offset//8 % 16 == 0
-			if chunktype == 1000:
-				pass
-			elif chunktype == 2000:
-				pass
-			elif chunktype == 2001:
-				for _ in range(stream.read(c_uint)):
-					object_id = stream.read(c_int64) # seems like the object id, but without some bits
-					lot = stream.read(c_uint)
-					unknown1 = stream.read(c_uint)
-					unknown2 = stream.read(c_uint)
-					position = stream.read(c_float), stream.read(c_float), stream.read(c_float)
-					rotation = stream.read(c_float), stream.read(c_float), stream.read(c_float), stream.read(c_float)
-					scale = stream.read(c_float)
-					config_data = stream.read(str, length_type=c_uint)
-					config_data = config_data.replace("{", "<crlbrktopen>").replace("}", "<crlbrktclose>").replace("\\", "<backslash>") # for some reason these characters aren't properly escaped when sent to Tk
-					assert stream.read(c_uint) == 0
-					lot_name = ""
-					if lot == 176:
-						lot_name = "Spawner - "
-						lot = config_data[config_data.index("spawntemplate")+16:config_data.index("\n", config_data.index("spawntemplate")+16)]
-					try:
-						lot_name += self.db.execute("select name from Objects where id == "+str(lot)).fetchone()[0]
-					except TypeError:
-						print("Name for lot", lot, "not found")
-					lot_name += " - "+str(lot)
-					self.tree.insert(scene, END, text="Object", values=(object_id, lot_name, unknown1, unknown2, position, rotation, scale, config_data))
-			elif chunktype == 2002:
-				pass
-			stream._read_offset = (start_pos + chunk_length) * 8 # go to the next CHNK
+		if stream[0:4] == b"CHNK":
+			# newer lvl file structure
+			# chunk based
+			while not stream.all_read():
+				assert stream._read_offset//8 % 16 == 0 # seems everything is aligned like this?
+				start_pos = stream._read_offset//8
+				assert stream.read(bytes, length=4) == b"CHNK"
+				chunk_type = stream.read(c_uint)
+				assert stream.read(c_ushort) == 1
+				assert stream.read(c_ushort) in (1, 2)
+				chunk_length = stream.read(c_uint)
+				data_pos = stream.read(c_uint)
+				stream._read_offset = data_pos * 8
+				assert stream._read_offset//8 % 16 == 0
+				if chunk_type == 1000:
+					pass
+				elif chunk_type == 2000:
+					pass
+				elif chunk_type == 2001:
+					self.lvl_parse_chunk_type_2001(stream, scene)
+				elif chunk_type == 2002:
+					pass
+				stream._read_offset = (start_pos + chunk_length) * 8 # go to the next CHNK
+		else:
+			# older lvl file structure
+			stream.skip_read(265)
+			stream.read(str, char_size=1, length_type=c_uint)
+			for _ in range(5):
+				stream.read(str, char_size=1, length_type=c_uint)
+			stream.skip_read(4)
+			for _ in range(stream.read(c_uint)):
+				stream.read(c_float), stream.read(c_float), stream.read(c_float)
+
+			self.lvl_parse_chunk_type_2001(stream, scene)
+
+	def lvl_parse_chunk_type_2001(self, stream, scene):
+		for _ in range(stream.read(c_uint)):
+			object_id = stream.read(c_int64) # seems like the object id, but without some bits
+			lot = stream.read(c_uint)
+			unknown1 = stream.read(c_uint)
+			unknown2 = stream.read(c_uint)
+			position = stream.read(c_float), stream.read(c_float), stream.read(c_float)
+			rotation = stream.read(c_float), stream.read(c_float), stream.read(c_float), stream.read(c_float)
+			scale = stream.read(c_float)
+			config_data = stream.read(str, length_type=c_uint)
+			config_data = config_data.replace("{", "<crlbrktopen>").replace("}", "<crlbrktclose>").replace("\\", "<backslash>") # for some reason these characters aren't properly escaped when sent to Tk
+			assert stream.read(c_uint) == 0
+			lot_name = ""
+			if lot == 176:
+				lot_name = "Spawner - "
+				lot = config_data[config_data.index("spawntemplate")+16:config_data.index("\n", config_data.index("spawntemplate")+16)]
+			try:
+				lot_name += self.db.execute("select name from Objects where id == "+str(lot)).fetchone()[0]
+			except TypeError:
+				print("Name for lot", lot, "not found")
+			lot_name += " - "+str(lot)
+			self.tree.insert(scene, END, text="Object", values=(object_id, lot_name, unknown1, unknown2, position, rotation, scale, config_data))
 
 	def on_item_select(self, _):
 		item = self.tree.selection()[0]
