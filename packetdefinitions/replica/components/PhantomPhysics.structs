@@ -9,13 +9,13 @@ Index 1 ($+834DB0):
 	[float] - rotation z
 	[float] - rotation w
 [bit] - flag
-	[bit] - flag, expect == False
-		[u32] - ???
-		[float] - ???
+	[bit] - is physics effect active
+		[u32] - effect type, 0 = push, 1 = attract, 2 = repulse, 3 = gravity, 4 = friction
+		[float] - effect amount
 		[bit] - flag
 			[u32] - ???
 			[u32] - ???
 		[bit] - flag
-			[float] - ???
-			[float] - ???
-			[float] - ???
+			[float] - effect direction x
+			[float] - effect direction y
+			[float] - effect direction z

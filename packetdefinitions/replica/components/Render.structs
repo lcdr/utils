@@ -1,9 +1,9 @@
 Component 2 - Render (tested using LOT 1)
 Index 1 ($+840310):
 if creation:
-	[s32] - number of BehaviorEffects? (see BehaviorEffect table in cdclient), if this is -1 the client logs "Bad FX Unserialize", expect != -1
-		[u8-string] - effectID string
+	[s32] - number of currently active FX effects, if this is -1 the client logs "Bad FX Unserialize", expect != -1
+		[u8-string] - effect name
 		[s32] - effectID
 		[u8-wstring] - effectType
-		[float] - ???
-		[s64] - ???
+		[float] - scale or priority?
+		[s64] - secondary?
