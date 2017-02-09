@@ -2,6 +2,7 @@ import configparser
 import math
 import os
 import pprint
+import struct
 import sqlite3
 import sys
 import tkinter.filedialog as filedialog
@@ -147,22 +148,19 @@ class CaptureViewer(viewer.Viewer):
 			messagebox.showerror("Can not open database", "Make sure db_path in the INI is set correctly.")
 			sys.exit()
 
-		self.enable_game_messages = "gamemessages_path" in config["paths"]
-		if self.enable_game_messages:
-			gamemsg_xml = ET.parse(config["paths"]["gamemessages_path"])
-			self.gamemsgs = gamemsg_xml.findall("message")
-			self.gamemsg_global_enums = {}
-			for enum in gamemsg_xml.findall("enum"):
-				self.gamemsg_global_enums[enum.get("name")] = tuple(value.get("name") for value in enum.findall("value"))
+		gamemsg_xml = ET.parse(config["paths"]["gamemessages_path"])
+		self.gamemsgs = {}
+		for msg in gamemsg_xml.findall("message"):
+			self.gamemsgs[int(msg.get("id"))] = msg
+		self.gamemsg_global_enums = {}
+		for enum in gamemsg_xml.findall("enum"):
+			self.gamemsg_global_enums[enum.get("name")] = tuple(value.get("name") for value in enum.findall("value"))
 
 		self.objects = []
 		self.lot_data = {}
 		self.parse_creations = BooleanVar(value=config["parse"]["creations"])
 		self.parse_serializations = BooleanVar(value=config["parse"]["serializations"])
-		if self.enable_game_messages:
-			self.parse_game_messages = BooleanVar(value=config["parse"]["game_messages"])
-		else:
-			self.parse_game_messages = BooleanVar(value=False)
+		self.parse_game_messages = BooleanVar(value=config["parse"]["game_messages"])
 		self.parse_normal_packets = BooleanVar(value=config["parse"]["normal_packets"])
 		self.retry_with_script_component = BooleanVar(value=config["parse"]["retry_with_script_component"])
 		self.retry_with_trigger_component = BooleanVar(value=config["parse"]["retry_with_trigger_component"])
@@ -175,8 +173,7 @@ class CaptureViewer(viewer.Viewer):
 		parse_menu = Menu(menubar)
 		parse_menu.add_checkbutton(label="Parse Creations", variable=self.parse_creations)
 		parse_menu.add_checkbutton(label="Parse Serializations", variable=self.parse_serializations)
-		if self.enable_game_messages:
-			parse_menu.add_checkbutton(label="Parse Game Messages", variable=self.parse_game_messages)
+		parse_menu.add_checkbutton(label="Parse Game Messages", variable=self.parse_game_messages)
 		parse_menu.add_checkbutton(label="Parse Normal Packets", variable=self.parse_normal_packets)
 		parse_menu.add_checkbutton(label="Retry parsing with script component if failed", variable=self.retry_with_script_component)
 		parse_menu.add_checkbutton(label="Retry parsing with trigger component if failed", variable=self.retry_with_trigger_component)
@@ -280,7 +277,7 @@ class CaptureViewer(viewer.Viewer):
 			else:
 				try:
 					self.parse_serialization(packet, parser_output, parsers, is_creation=True)
-				except (AssertionError, IndexError):
+				except (AssertionError, IndexError, struct.error):
 					if retry_with_components:
 						print("retry was not able to resolve parsing error")
 						raise
@@ -349,57 +346,8 @@ class CaptureViewer(viewer.Viewer):
 			obj.entry = entry = self.tree.insert("", END, text="Unknown", values=("object_id="+str(object_id), ""))
 
 		msg_id = packet.read(c_ushort)
-		if msg_id <= 128:
-			msg_id -= 1
-		elif msg_id <= 249:
-			msg_id -= 2
-		elif msg_id <= 448:
-			msg_id += 1
-		elif msg_id <= 509:
-			msg_id -= 1
-		elif msg_id <= 520:
-			msg_id -= 5
-		elif msg_id <= 547:
-			msg_id -= 6
-		elif msg_id <= 576:
-			msg_id -= 8
-		elif msg_id <= 675:
-			msg_id -= 10
-		elif msg_id <= 693:
-			msg_id -= 12
-		elif msg_id <= 725:
-			msg_id -= 7
-		elif msg_id <= 781:
-			msg_id -= 10
-		elif msg_id <= 851:
-			msg_id -= 9
-		elif msg_id <= 891:
-			msg_id -= 10
-		elif msg_id <= 957:
-			msg_id -= 9
-		elif msg_id <= 980:
-			msg_id -= 30
-		elif msg_id <= 1004:
-			msg_id -= 32
-		elif msg_id <= 1081:
-			msg_id -= 33
-		elif msg_id <= 1238:
-			msg_id -= 34
-		elif msg_id <= 1310:
-			msg_id -= 31
-		elif msg_id <= 1419:
-			msg_id -= 30
-		elif msg_id <= 1516:
-			msg_id -= 29
-		elif msg_id <= 1594:
-			msg_id -= 28
-		elif msg_id <= 1648:
-			msg_id -= 27
-		elif msg_id <= 1676:
-			msg_id -= 28
-		elif msg_id <= 1767:
-			msg_id -= 26
 
+		tags = []
 		try:
 			message = self.gamemsgs[msg_id]
 			msg_name = message.get("name")
@@ -415,7 +363,7 @@ class CaptureViewer(viewer.Viewer):
 
 			attrs.sort(key=lambda x: x.get("name"))
 
-			if message.find("freeze") is not None or message.find("thaw") is not None:
+			if message.get("custom") is not None:
 				# Custom serializations
 				if msg_name == "NotifyMissionTask":
 					attr_values["missionID"] = packet.read(c_int)
@@ -423,6 +371,8 @@ class CaptureViewer(viewer.Viewer):
 					updates = []
 					for _ in range(packet.read(c_ubyte)):
 						updates.append(packet.read(c_float))
+					if len(updates) != 1:
+						tags.append("unexpected")
 					attr_values["updates"] = updates
 				elif msg_name == "VendorStatusUpdate":
 					attr_values["bUpdateOnly"] = packet.read(c_bit)
@@ -570,7 +520,6 @@ class CaptureViewer(viewer.Viewer):
 				else:
 					raise NotImplementedError("Custom serialization")
 				values = "\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()])
-				tags = []
 			else:
 				local_enums = {}
 				for enum in message.findall("enum"):
@@ -644,16 +593,15 @@ class CaptureViewer(viewer.Viewer):
 				raise ValueError
 		except NotImplementedError as e:
 			values = (msg_name, str(e)+"\nlen: "+str(len(packet)-10)+"\n"+"\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()]))
-			tags = ["error"]
+			tags.append("error")
 		except Exception as e:
 			print(packet_name, msg_name)
 			import traceback
 			traceback.print_exc()
 			values = ("likely not "+msg_name, "Error while parsing, likely not this message!\n"+str(e)+"\nlen: "+str(len(packet)-10)+"\n"+"\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()]))
-			tags = ["error"]
+			tags.append("error")
 		else:
 			values = (msg_name, "\n".join(["%s = %s" % (a, pprint.pformat(b)) for a, b in attr_values.items()]))
-			tags = []
 		self.tree.insert(entry, END, text=packet_name, values=values, tags=tags)
 
 	def parse_normal_packet(self, packet_name, packet):

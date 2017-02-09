@@ -1,0 +1,1585 @@
+<?xml version="1.0" ?>
+<messages>
+	<enum name="eObjectWorldState">
+		<value name="WORLDSTATE_INWORLD"/>
+		<value name="WORLDSTATE_ATTACHED"/>
+		<value name="WORLDSTATE_INVENTORY"/>
+	</enum>
+	<enum name="ETriggerStat">
+		<value name="INVALID_STAT"/>
+		<value name="HEALTH"/>
+		<value name="ARMOR"/>
+		<value name="IMAGINATION"/>
+	</enum>
+	<enum name="ETriggerOperator">
+		<value name="INVALID_OPER"/>
+		<value name="EQUAL"/>
+		<value name="NOT_EQUAL"/>
+		<value name="GREATER"/>
+		<value name="GREATER_EQUAL"/>
+		<value name="LESS"/>
+		<value name="LESS_EQUAL"/>
+	</enum>
+	<enum name="EBuildType">
+		<value name="BUILD_NOWHERE"/>
+		<value name="BUILD_IN_WORLD"/>
+		<value name="BUILD_ON_PROPERTY"/>
+	</enum>
+	<message id="19" name="Teleport" network="duplicatedclient">
+		<attr name="pos" type="NiPoint3"/>
+		<attr name="x" type="float"/>
+		<attr name="y" type="float"/>
+		<attr name="z" type="float"/>
+		<attr default="1.0f" name="w" type="float"/>
+		<attr default="false" name="bSetRotation" type="bool"/>
+		<attr default="true" name="bIgnoreY" type="bool"/>
+		<attr default="false" name="useNavmesh" type="bool"/>
+		<attr default="false" name="bSkipAllChecks" type="bool"/>
+		<attr name="NoGravTeleport" type="bool"/>
+	</message>
+	<message id="30" name="DropClientLoot" network="client">
+		<attr name="owner" type="LWOOBJID"/>
+		<attr name="sourceObj" type="LWOOBJID"/>
+		<attr name="lootID" type="LWOOBJID"/>
+		<attr name="iCurrency" type="int"/>
+		<attr name="itemTemplate" type="LOT"/>
+		<attr default="false" name="bUsePosition" type="bool"/>
+		<attr default="NiPoint3::ZERO" name="spawnPosition" type="NiPoint3"/>
+		<attr default="NiPoint3::ZERO" name="finalPosition" type="NiPoint3"/>
+	</message>
+	<message id="37" name="Die" network="duplicatedclient">
+		<enum name="eKillType">
+			<value name="VIOLENT"/>
+			<value name="SILENT"/>
+		</enum>
+		<attr name="killerID" type="LWOOBJID"/>
+		<attr default="LWOOBJID_EMPTY" name="lootOwnerID" type="LWOOBJID"/>
+		<attr default="VIOLENT" name="killType" type="eKillType"/>
+		<attr name="deathType" type="std::wstring"/>
+		<attr name="directionRelative_AngleY" type="float"/>
+		<attr name="directionRelative_AngleXZ" type="float"/>
+		<attr name="directionRelative_Force" type="float"/>
+		<attr default="false" name="bClientDeath" type="bool"/>
+		<attr default="true" name="bSpawnLoot" type="bool"/>
+		<attr default="-1.0f" name="coinSpawnTime" type="float"/>
+	</message>
+	<message id="38" name="RequestDie" network="server">
+		<enum name="eKillType">
+			<value name="VIOLENT"/>
+			<value name="SILENT"/>
+		</enum>
+		<attr name="killerID" type="LWOOBJID"/>
+		<attr name="lootOwnerID" type="LWOOBJID"/>
+		<attr name="bDieAccepted" type="bool"/>
+		<attr default="VIOLENT" name="killType" type="eKillType"/>
+		<attr name="deathType" type="std::wstring"/>
+		<attr name="directionRelative_AngleY" type="float"/>
+		<attr name="directionRelative_AngleXZ" type="float"/>
+		<attr name="directionRelative_Force" type="float"/>
+		<attr default="false" name="bClientDeath" type="bool"/>
+		<attr default="true" name="bSpawnLoot" type="bool"/>
+		<attr default="-1.0f" name="coinSpawnTime" type="float"/>
+	</message>
+	<message id="41" name="PlayEmote" network="server">
+		<attr name="emoteID" type="int"/>
+		<attr name="targetID" type="LWOOBJID"/>
+	</message>
+	<message id="42" name="PreloadAnimation" network="client">
+		<attr name="animationID" type="std::wstring"/>
+		<attr name="respondObjID" type="LWOOBJID"/>
+		<attr name="userData" type="LwoNameValue"/>
+		<attr default="false" name="handled" type="bool"/>
+	</message>
+	<message id="43" name="PlayAnimation" network="client">
+		<attr name="animationID" type="std::wstring"/>
+		<attr default="SECONDARY_PRIORITY" name="fPriority" type="float"/>
+		<attr name="bPlayImmediate" type="bool"/>
+		<attr default="false" name="bTriggerOnCompleteMsg" type="bool"/>
+		<attr default="true" name="bExpectAnimToExist" type="bool"/>
+		<attr default="1.0f" name="fScale" type="float"/>
+	</message>
+	<message id="48" name="ControlBehaviors" network="server">
+		<attr name="command" type="std::string"/>
+		<attr name="args" type="NDGFxValue"/>
+	</message>
+	<message id="72" name="SetName" network="duplicatedclient">
+		<attr name="name" type="std::wstring"/>
+	</message>
+	<message id="118" name="EchoStartSkill" network="client">
+		<attr name="sBitStream" type="std::string"/>
+		<attr name="skillID" type="TSkillID"/>
+		<attr default="NiPoint3::ZERO" name="lastClickedPosit" type="NiPoint3"/>
+		<attr default="false" name="bUsedMouse" type="bool"/>
+		<attr name="optionalOriginatorID" type="LWOOBJID"/>
+		<attr default="LWOOBJID_EMPTY" name="optionalTargetID" type="LWOOBJID"/>
+		<attr default="NiQuaternion::IDENTITY" name="originatorRot" type="NiQuaternion"/>
+		<attr default="0" name="iCastType" type="int"/>
+		<attr default="0.0f" name="fCasterLatency" type="float"/>
+		<attr default="0" name="uiSkillHandle" type="unsigned int"/>
+	</message>
+	<message id="119" name="StartSkill" network="server">
+		<attr name="sBitStream" type="std::string"/>
+		<attr name="skillID" type="TSkillID"/>
+		<attr default="NiPoint3::ZERO" name="lastClickedPosit" type="NiPoint3"/>
+		<attr default="false" name="bUsedMouse" type="bool"/>
+		<attr name="optionalOriginatorID" type="LWOOBJID"/>
+		<attr default="LWOOBJID_EMPTY" name="optionalTargetID" type="LWOOBJID"/>
+		<attr default="LWOOBJID_EMPTY" name="consumableItemID" type="LWOOBJID"/>
+		<attr default="NiQuaternion::IDENTITY" name="originatorRot" type="NiQuaternion"/>
+		<attr default="0" name="iCastType" type="int"/>
+		<attr default="0.0f" name="fCasterLatency" type="float"/>
+		<attr default="0" name="uiSkillHandle" type="unsigned int"/>
+	</message>
+	<message id="120" name="CasterDead" network="server">
+		<attr default="0" name="uiSkillHandle" type="unsigned int"/>
+		<attr default="LWOOBJID_EMPTY" name="i64Caster" type="LWOOBJID"/>
+	</message>
+	<message id="121" name="VerifyAck" network="server">
+		<attr name="sBitStream" type="std::string"/>
+		<attr default="0" name="uiHandle" type="unsigned int"/>
+		<attr default="false" name="bDifferent" type="bool"/>
+	</message>
+	<message id="124" name="SelectSkill" network="duplicatedserver">
+		<attr name="skillID" type="int"/>
+		<attr default="false" name="bFromSkillSet" type="bool"/>
+	</message>
+	<message id="127" name="AddSkill" network="duplicatedclient">
+		<attr name="skillID" type="TSkillID"/>
+		<attr default="0" name="castType" type="int"/>
+		<attr default="true" name="temporary" type="bool"/>
+		<attr default="0" name="AICombatWeight" type="int"/>
+		<attr default="-1" name="slotID" type="int"/>
+		<attr default="-1.0f" name="fTimeSecs" type="float"/>
+		<attr default="-1" name="iTimesCanCast" type="int"/>
+		<attr default="false" name="bFromSkillSet" type="bool"/>
+	</message>
+	<message id="128" name="RemoveSkill" network="duplicated">
+		<attr name="skillID" type="TSkillID"/>
+		<attr default="false" name="bFromSkillSet" type="bool"/>
+	</message>
+	<message id="133" name="SetCurrency" network="duplicatedclient">
+		<attr name="position" type="NiPoint3"/>
+		<attr name="currency" type="__int64"/>
+		<attr default="LOOTTYPE_NONE" name="sourceType" type="int"/>
+		<attr default="LOOTTYPE_NONE" name="lootType" type="int"/>
+		<attr default="LOT_NULL" name="sourceLOT" type="LOT"/>
+		<attr default="LWOOBJID_EMPTY" name="sourceObject" type="LWOOBJID"/>
+		<attr default="LWOOBJID_EMPTY" name="sourceTradeID" type="LWOOBJID"/>
+	</message>
+	<message id="137" name="PickupCurrency" network="server">
+		<attr name="currency" type="unsigned int"/>
+		<attr name="position" type="NiPoint3"/>
+	</message>
+	<message id="139" name="PickupItem" network="server">
+		<attr name="lootObjectID" type="LWOOBJID"/>
+		<attr name="playerID" type="LWOOBJID"/>
+	</message>
+	<message id="140" name="TeamPickupItem" network="client">
+		<attr name="lootOwnerID" type="LWOOBJID"/>
+		<attr name="lootID" type="LWOOBJID"/>
+	</message>
+	<message id="154" name="PlayFXEffect" network="duplicatedclient">
+		<attr name="name" type="std::string"/>
+		<attr default="-1" name="effectID" type="int"/>
+		<attr name="effectType" type="std::wstring"/>
+		<attr default="1.0" name="priority" type="float"/>
+		<attr default="LWOOBJID_EMPTY" name="secondary" type="LWOOBJID"/>
+		<attr default="1.0f" name="fScale" type="float"/>
+		<attr default="true" name="serialize" type="bool"/>
+	</message>
+	<message id="155" name="StopFXEffect" network="duplicatedclient">
+		<attr name="name" type="std::string"/>
+		<attr name="bKillImmediate" type="bool"/>
+	</message>
+	<message id="159" name="RequestResurrect" network="server"/>
+	<message id="160" name="Resurrect" network="duplicatedclient">
+		<attr default="false" name="bRezImmediately" type="bool"/>
+	</message>
+	<message id="192" name="PopEquippedItemsState" network="server"/>
+	<message id="198" name="SetStunned" network="duplicatedclient">
+		<enum name="EStunState">
+			<value name="PUSH"/>
+			<value name="POP"/>
+		</enum>
+		<attr name="StateChangeType" type="EStunState"/>
+		<attr name="bCantMove" type="bool"/>
+		<attr name="bCantJump" type="bool"/>
+		<attr name="bCantTurn" type="bool"/>
+		<attr name="bCantAttack" type="bool"/>
+		<attr default="false" name="bCantUseItem" type="bool"/>
+		<attr name="bCantEquip" type="bool"/>
+		<attr name="bCantInteract" type="bool"/>
+		<attr default="false" name="bDontTerminateInteract" type="bool"/>
+		<attr default="false" name="bCantMoveOutChangeWasApplied" type="bool"/>
+		<attr default="false" name="bCantJumpOutChangeWasApplied" type="bool"/>
+		<attr default="false" name="bCantTurnOutChangeWasApplied" type="bool"/>
+		<attr default="false" name="bCantAttackOutChangeWasApplied" type="bool"/>
+		<attr default="false" name="bCantUseItemOutChangeWasApplied" type="bool"/>
+		<attr default="false" name="bCantEquipOutChangeWasApplied" type="bool"/>
+		<attr default="false" name="bCantInteractOutChangeWasApplied" type="bool"/>
+		<attr default="true" name="bIgnoreImmunity" type="bool"/>
+		<attr default="LWOOBJID_EMPTY" name="Originator" type="LWOOBJID"/>
+	</message>
+	<message id="200" name="SetStunImmunity" network="duplicatedclient">
+		<enum name="EImmunityState">
+			<value name="PUSH"/>
+			<value name="POP"/>
+		</enum>
+		<attr name="StateChangeType" type="EImmunityState"/>
+		<attr name="bImmuneToStunMove" type="bool"/>
+		<attr name="bImmuneToStunJump" type="bool"/>
+		<attr name="bImmuneToStunTurn" type="bool"/>
+		<attr name="bImmuneToStunAttack" type="bool"/>
+		<attr name="bImmuneToStunUseItem" type="bool"/>
+		<attr name="bImmuneToStunEquip" type="bool"/>
+		<attr name="bImmuneToStunInteract" type="bool"/>
+		<attr default="LWOOBJID_EMPTY" name="Caster" type="LWOOBJID"/>
+	</message>
+	<message id="202" name="Knockback" network="duplicatedclient">
+		<attr name="vector" type="NiPoint3"/>
+		<attr default="0" name="iKnockBackTimeMS" type="int"/>
+		<attr default="LWOOBJID_EMPTY" name="Caster" type="LWOOBJID"/>
+		<attr default="LWOOBJID_EMPTY" name="Originator" type="LWOOBJID"/>
+	</message>
+	<message id="209" name="RebuildCancel" network="server">
+		<attr name="userID" type="LWOOBJID"/>
+		<attr name="bEarlyRelease" type="bool"/>
+	</message>
+	<message id="213" name="EnableRebuild" network="client">
+		<enum name="FailReason">
+			<value name="REASON_NOT_GIVEN"/>
+			<value name="REASON_OUT_OF_IMAGINATION"/>
+			<value name="REASON_CANCELED_EARLY"/>
+			<value name="REASON_BUILD_ENDED"/>
+		</enum>
+		<attr name="bEnable" type="bool"/>
+		<attr name="bFail" type="bool"/>
+		<attr default="REASON_NOT_GIVEN" name="eFailReason" type="FailReason"/>
+		<attr name="bSuccess" type="bool"/>
+		<attr name="user" type="LWOOBJID"/>
+		<attr name="fDuration" type="float"/>
+	</message>
+	<message id="224" name="MoveItemInInventory" network="duplicated">
+		<attr name="iObjID" type="LWOOBJID"/>
+		<attr name="slot" type="int"/>
+		<attr name="inventoryType" type="int"/>
+		<attr default="INVENTORY_INVALID" name="destInvType" type="int"/>
+		<attr name="responseCode" type="int"/>
+	</message>
+	<message id="227" name="AddItemToInventoryClientSync" network="duplicatedclient">
+		<attr name="ni3FlyingLootPosit" type="NiPoint3"/>
+		<attr default="true" name="showFlyingLoot" type="bool"/>
+		<attr default="LOOTTYPE_NONE" name="eLootTypeSource" type="int"/>
+		<attr name="iObjTemplate" type="LOT"/>
+		<attr default="LWOOBJID_EMPTY" name="iSubkey" type="LWOOBJID"/>
+		<attr name="slotID" type="int"/>
+		<attr name="newObjID" type="LWOOBJID"/>
+		<attr default="INVENTORY_DEFAULT" name="invType" type="int"/>
+		<attr default="1" name="itemCount" type="unsigned int"/>
+		<attr default="0" name="itemsTotal" type="unsigned int"/>
+		<attr name="bIsBOE" type="bool"/>
+		<attr name="bIsBOP" type="bool"/>
+		<attr name="bBound" type="bool"/>
+		<attr name="extraInfo" type="LwoNameValue"/>
+	</message>
+	<message id="230" name="RemoveItemFromInventory" network="duplicated">
+		<attr default="INVENTORY_MAX" name="eInvType" type="int"/>
+		<attr default="LWOOBJID_EMPTY" name="iObjID" type="LWOOBJID"/>
+		<attr default="LOT_NULL" name="iObjTemplate" type="LOT"/>
+		<attr default="LWOOBJID_EMPTY" name="iSubkey" type="LWOOBJID"/>
+		<attr default="1" name="iStackCount" type="unsigned int"/>
+		<attr default="true" name="bDeleteItem" type="bool"/>
+		<attr default="false" name="bConfirmed" type="bool"/>
+		<attr default="LWOOBJID_EMPTY" name="iRequestingObjID" type="LWOOBJID"/>
+		<attr default="false" name="bOutSuccess" type="bool"/>
+		<attr default="true" name="forceDeletion" type="bool"/>
+		<attr default="LOOTTYPE_NONE" name="eLootTypeSource" type="int"/>
+		<attr default="LWOOBJID_EMPTY" name="iLootTypeSourceID" type="LWOOBJID"/>
+		<attr default="0" name="iStackRemaining" type="unsigned int"/>
+		<attr default="LWOOBJID_EMPTY" name="iTradeID" type="LWOOBJID"/>
+		<attr name="extraInfo" type="LwoNameValue"/>
+	</message>
+	<message id="231" name="EquipInventory" network="duplicated">
+		<attr name="itemtoequip" type="LWOOBJID"/>
+		<attr default="false" name="bIgnoreCooldown" type="bool"/>
+		<attr name="bOutSuccess" type="bool"/>
+	</message>
+	<message id="233" name="UnEquipInventory" network="duplicated">
+		<attr name="itemtounequip" type="LWOOBJID"/>
+		<attr default="LWOOBJID_EMPTY" name="replacementObjectID" type="LWOOBJID"/>
+		<attr default="false" name="bEvenIfDead" type="bool"/>
+		<attr default="false" name="bIgnoreCooldown" type="bool"/>
+		<attr name="bOutSuccess" type="bool"/>
+	</message>
+	<message id="248" name="OfferMission" network="client">
+		<attr name="missionID" type="int"/>
+		<attr name="offerer" type="LWOOBJID"/>
+	</message>
+	<message id="249" name="RespondToMission" network="duplicatedserver">
+		<attr name="playerID" type="LWOOBJID"/>
+		<attr name="receiver" type="LWOOBJID"/>
+		<attr name="missionID" type="int"/>
+		<attr default="LOT_NULL" name="rewardItem" type="LOT"/>
+	</message>
+	<message id="254" name="NotifyMission" network="client">
+		<attr name="missionID" type="int"/>
+		<attr name="missionState" type="int"/>
+		<attr default="false" name="sendingRewards" type="bool"/>
+	</message>
+	<message custom="" id="255" name="NotifyMissionTask" network="client">
+		<attr name="missionID" type="int"/>
+		<attr name="taskMask" type="int"/>
+		<attr name="updates" type="std::vector&lt;float&gt;"/>
+	</message>
+	<message id="336" name="RebuildNotifyState" network="duplicatedclient">
+		<attr name="iState" type="int"/>
+		<attr name="iPrevState" type="int"/>
+		<attr name="player" type="LWOOBJID"/>
+	</message>
+	<message id="356" name="ToggleInteractionUpdates" network="duplicatedclient">
+		<attr default="false" name="bEnable" type="bool"/>
+	</message>
+	<message id="357" name="TerminateInteraction" network="duplicatedclient">
+		<enum name="ETerminateType">
+			<value name="range"/>
+			<value name="user"/>
+			<value name="fromInteraction"/>
+		</enum>
+		<attr name="type" type="ETerminateType"/>
+		<attr name="ObjIDTerminator" type="LWOOBJID"/>
+	</message>
+	<message id="358" name="ServerTerminateInteraction" network="server">
+		<enum name="ETerminateType">
+			<value name="range"/>
+			<value name="user"/>
+			<value name="fromInteraction"/>
+		</enum>
+		<attr name="type" type="ETerminateType"/>
+		<attr name="ObjIDTerminator" type="LWOOBJID"/>
+	</message>
+	<message id="364" name="RequestUse" network="server">
+		<attr name="object" type="LWOOBJID"/>
+		<attr default="false" name="secondary" type="bool"/>
+		<attr name="bIsMultiInteractUse" type="bool"/>
+		<attr name="multiInteractID" type="unsigned int"/>
+		<attr name="multiInteractType" type="int"/>
+	</message>
+	<message id="369" name="VendorOpenWindow" network="client"/>
+	<message id="371" name="EmotePlayed" network="duplicatedclient">
+		<attr name="targetID" type="LWOOBJID"/>
+		<attr name="emoteID" type="int"/>
+	</message>
+	<message id="373" name="BuyFromVendor" network="duplicatedserver">
+		<attr name="item" type="LOT"/>
+		<attr default="1" name="count" type="int"/>
+		<attr default="false" name="confirmed" type="bool"/>
+	</message>
+	<message id="374" name="SellToVendor" network="duplicatedserver">
+		<attr name="itemObjID" type="LWOOBJID"/>
+		<attr default="1" name="count" type="int"/>
+	</message>
+	<message id="379" name="CancelDonationOnPlayer" network="server"/>
+	<message id="383" name="TeamSetOffWorldFlag" network="duplicatedclient">
+		<attr name="i64PlayerID" type="LWOOBJID"/>
+		<attr name="zoneID" type="LWOZONEID"/>
+	</message>
+	<message id="389" name="SetInventorySize" network="duplicatedclient">
+		<attr name="inventoryType" type="int"/>
+		<attr name="size" type="int"/>
+	</message>
+	<message id="391" name="AcknowledgePossession" network="server">
+		<attr default="LWOOBJID_EMPTY" name="possessedObjID" type="LWOOBJID"/>
+	</message>
+	<message id="404" name="RequestActivityExit" network="server">
+		<attr name="userID" type="LWOOBJID"/>
+		<attr name="bUserCancel" type="bool"/>
+	</message>
+	<message id="405" name="ActivityEnter" network="client"/>
+	<message id="406" name="ActivityExit" network="client"/>
+	<message id="407" name="ActivityStart" network="duplicatedclient"/>
+	<message id="408" name="ActivityStop" network="duplicatedclient">
+		<attr name="bExit" type="bool"/>
+		<attr name="bUserCancel" type="bool"/>
+	</message>
+	<message id="411" name="ShootingGalleryFire" network="duplicatedserver">
+		<attr name="targetPos" type="NiPoint3"/>
+		<attr name="x" type="float"/>
+		<attr name="y" type="float"/>
+		<attr name="z" type="float"/>
+		<attr name="w" type="float"/>
+	</message>
+	<message id="416" name="RequestVendorStatusUpdate" network="server"/>
+	<message custom="" id="417" name="VendorStatusUpdate" network="client">
+		<attr name="bUpdateOnly" type="bool"/>
+		<attr name="inventoryList" type="std::map&lt;LOT,int&gt;"/>
+	</message>
+	<message id="418" name="CancelMission" network="duplicated">
+		<attr name="missionID" type="int"/>
+		<attr name="resetCompleted" type="bool"/>
+	</message>
+	<message id="419" name="ResetMissions" network="duplicatedclient">
+		<attr default="-1" name="missionID" type="int"/>
+	</message>
+	<message id="425" name="NotifyClientShootingGalleryScore" network="client">
+		<attr name="target" type="LWOOBJID"/>
+		<attr name="score" type="int"/>
+		<attr name="addTime" type="float"/>
+		<attr name="targetPos" type="NiPoint3"/>
+	</message>
+	<message id="428" name="ClientItemConsumed" network="server">
+		<attr name="item" type="LWOOBJID"/>
+	</message>
+	<message id="448" name="UpdateShootingGalleryRotation" network="server">
+		<attr name="facing" type="NiPoint3"/>
+		<attr name="angle" type="float"/>
+		<attr name="muzzlePos" type="NiPoint3"/>
+	</message>
+	<message id="466" name="SetUserCtrlCompPause" network="client">
+		<attr name="bPaused" type="bool"/>
+	</message>
+	<message id="469" name="SetTooltipFlag" network="duplicatedserver">
+		<attr name="iToolTip" type="int"/>
+		<attr name="bFlag" type="bool"/>
+	</message>
+	<message id="471" name="SetFlag" network="duplicatedserver">
+		<attr name="iFlagID" type="int"/>
+		<attr name="bFlag" type="bool"/>
+	</message>
+	<message id="472" name="NotifyClientFlagChange" network="client">
+		<attr name="iFlagID" type="int"/>
+		<attr name="bFlag" type="bool"/>
+	</message>
+	<message id="475" name="Help" network="client">
+		<attr name="iHelpID" type="int"/>
+	</message>
+	<message id="476" name="VendorTransactionResult" network="client">
+		<attr name="iResult" type="int"/>
+	</message>
+	<message id="486" name="HasBeenCollected" network="duplicatedserver">
+		<attr name="playerID" type="LWOOBJID"/>
+	</message>
+	<message id="487" name="HasBeenCollectedByClient" network="client">
+		<attr name="playerID" type="LWOOBJID"/>
+	</message>
+	<message id="499" name="DespawnPet" network="server">
+		<attr name="bDeletePet" type="bool"/>
+	</message>
+	<message id="505" name="PlayerLoaded" network="server">
+		<attr name="playerID" type="LWOOBJID"/>
+	</message>
+	<message id="509" name="PlayerReady" network="duplicatedclient"/>
+	<message custom="" id="515" name="RequestLinkedMission" network="duplicatedserver">
+		<attr name="playerID" type="LWOOBJID"/>
+		<attr name="missionID" type="int"/>
+		<attr default="false" name="bMissionOffered" type="bool"/>
+		<attr name="linkedMissionIDs" type="std::set&lt;int&gt;"/>
+	</message>
+	<message id="516" name="TransferToZone" network="duplicatedclient">
+		<attr default="LWOMAPID_INVALID" name="zoneID" type="LWOMAPID"/>
+		<attr default="LWOCLONEID_INVALID" name="cloneID" type="LWOCLONEID"/>
+		<attr name="ucInstanceType" type="unsigned char"/>
+		<attr name="spawnPoint" type="std::wstring"/>
+		<attr default="FLT_MAX" name="pos_x" type="float"/>
+		<attr default="FLT_MAX" name="pos_y" type="float"/>
+		<attr default="FLT_MAX" name="pos_z" type="float"/>
+		<attr default="0" name="rot_x" type="float"/>
+		<attr default="0" name="rot_y" type="float"/>
+		<attr default="0" name="rot_z" type="float"/>
+		<attr default="1" name="rot_w" type="float"/>
+		<attr default="false" name="bCheckTransferAllowed" type="bool"/>
+	</message>
+	<message id="517" name="TransferToZoneCheckedIM" network="duplicatedclient">
+		<attr default="LWOMAPID_INVALID" name="zoneID" type="LWOMAPID"/>
+		<attr default="LWOCLONEID_INVALID" name="cloneID" type="LWOCLONEID"/>
+		<attr name="ucInstanceType" type="unsigned char"/>
+		<attr name="spawnPoint" type="std::wstring"/>
+		<attr default="FLT_MAX" name="pos_x" type="float"/>
+		<attr default="FLT_MAX" name="pos_y" type="float"/>
+		<attr default="FLT_MAX" name="pos_z" type="float"/>
+		<attr default="0" name="rot_x" type="float"/>
+		<attr default="0" name="rot_y" type="float"/>
+		<attr default="0" name="rot_z" type="float"/>
+		<attr default="1" name="rot_w" type="float"/>
+		<attr default="false" name="bIsThereaQueue" type="bool"/>
+	</message>
+	<message id="519" name="InvalidZoneTransferList" network="client">
+		<attr name="InvalidMapTransferList" type="std::wstring"/>
+		<attr name="CustomerFeedbackURL" type="std::wstring"/>
+		<attr name="bCustomerFeedbackOnExit" type="bool"/>
+		<attr name="bCustomerFeedbackOnInvalidMapTransfer" type="bool"/>
+	</message>
+	<message id="520" name="MissionDialogueOK" network="duplicatedserver">
+		<attr name="responder" type="LWOOBJID"/>
+		<attr name="bIsComplete" type="bool"/>
+		<attr name="missionID" type="int"/>
+		<attr name="iMissionState" type="int"/>
+	</message>
+	<message id="527" name="TransferToLastNonInstance" network="duplicatedclient">
+		<attr name="playerID" type="LWOOBJID"/>
+		<attr default="true" name="bUseLastPosition" type="bool"/>
+		<attr default="FLT_MAX" name="pos_x" type="float"/>
+		<attr default="FLT_MAX" name="pos_y" type="float"/>
+		<attr default="FLT_MAX" name="pos_z" type="float"/>
+		<attr default="0" name="rot_x" type="float"/>
+		<attr default="0" name="rot_y" type="float"/>
+		<attr default="0" name="rot_z" type="float"/>
+		<attr default="1" name="rot_w" type="float"/>
+	</message>
+	<message id="529" name="DisplayMessageBox" network="client">
+		<attr name="bShow" type="bool"/>
+		<attr name="imageID" type="int"/>
+		<attr name="callbackClient" type="LWOOBJID"/>
+		<attr name="text" type="std::wstring"/>
+		<attr name="identifier" type="std::wstring"/>
+		<attr name="userData" type="std::wstring"/>
+	</message>
+	<message id="530" name="MessageBoxRespond" network="duplicatedserver">
+		<attr name="iButton" type="int"/>
+		<attr name="identifier" type="std::wstring"/>
+		<attr name="userData" type="std::wstring"/>
+	</message>
+	<message id="531" name="ChoiceBoxRespond" network="duplicatedserver">
+		<attr name="iButton" type="int"/>
+		<attr name="identifier" type="std::wstring"/>
+		<attr name="buttonIdentifier" type="std::wstring"/>
+	</message>
+	<message id="537" name="Smash" network="duplicatedclient">
+		<attr name="killerID" type="LWOOBJID"/>
+		<attr name="ghostOpacity" type="float"/>
+		<attr name="force" type="float"/>
+		<attr default="false" name="bIgnoreObjectVisibility" type="bool"/>
+	</message>
+	<message id="538" name="UnSmash" network="duplicatedclient">
+		<attr default="LWOOBJID_EMPTY" name="builderID" type="LWOOBJID"/>
+		<attr default="3.0f" name="duration" type="float"/>
+	</message>
+	<message id="541" name="SetGravityScale" network="duplicatedclient">
+		<attr name="scale" type="float"/>
+	</message>
+	<message id="547" name="PlaceModelResponse" network="client">
+		<attr default="0" name="response" type="int"/>
+		<attr default="NiPoint3::ZERO" name="position" type="NiPoint3"/>
+		<attr default="NiQuaternion::IDENTITY" name="rotation" type="NiQuaternion"/>
+		<attr default="LWOOBJID_EMPTY" name="propertyPlaqueID" type="LWOOBJID"/>
+	</message>
+	<message id="561" name="SetJetPackMode" network="duplicatedclient">
+		<attr name="bUse" type="bool"/>
+		<attr default="false" name="bDoHover" type="bool"/>
+		<attr default="false" name="bBypassChecks" type="bool"/>
+		<attr default="1" name="fVertVel" type="float"/>
+		<attr default="10" name="fAirspeed" type="float"/>
+		<attr default="15" name="fMaxAirspeed" type="float"/>
+		<attr default="-1" name="iWarningEffectID" type="int"/>
+		<attr default="-1" name="effectID" type="int"/>
+	</message>
+	<message id="565" name="RegisterPetID" network="duplicatedclient">
+		<attr name="objID" type="LWOOBJID"/>
+	</message>
+	<message id="566" name="RegisterPetDBID" network="duplicatedclient">
+		<attr name="petDBID" type="LWOOBJID"/>
+	</message>
+	<message id="568" name="ShowActivityCountdown" network="client">
+		<attr name="bPlayCountdownSound" type="bool"/>
+		<attr name="bPlayAdditionalSound" type="bool"/>
+		<attr name="sndName" type="std::wstring"/>
+		<attr name="stateToPlaySoundOn" type="int"/>
+	</message>
+	<message id="569" name="DisplayTooltip" network="client">
+		<attr name="bShow" type="bool"/>
+		<attr default="false" name="bTranslate" type="bool"/>
+		<attr default="false" name="NoRevive" type="bool"/>
+		<attr default="false" name="NoRepeat" type="bool"/>
+		<attr default="false" name="DoOrDie" type="bool"/>
+		<attr name="strText" type="std::wstring"/>
+		<attr name="strImageName" type="std::wstring"/>
+		<attr name="id" type="std::wstring"/>
+		<attr name="iTime" type="int"/>
+		<attr default="false" name="bIsPropertyTooltip" type="bool"/>
+		<attr name="localizeParams" type="LwoNameValue"/>
+	</message>
+	<message id="576" name="StartActivityTime" network="duplicatedclient">
+		<attr name="startTime" type="float"/>
+	</message>
+	<message id="602" name="ActivityPause" network="duplicatedclient">
+		<attr name="bPause" type="bool"/>
+	</message>
+	<message id="603" name="UseNonEquipmentItem" network="duplicatedserver">
+		<attr name="itemToUse" type="LWOOBJID"/>
+	</message>
+	<message id="607" name="UseItemResult" network="client">
+		<attr name="m_ItemTemplateID" type="LOT"/>
+		<attr default="false" name="m_UseItemResult" type="bool"/>
+	</message>
+	<message id="638" name="FetchModelMetadataRequest" network="server">
+		<attr name="ugID" type="LWOOBJID"/>
+		<attr name="objectID" type="LWOOBJID"/>
+		<attr name="requestorID" type="LWOOBJID"/>
+		<attr name="context" type="int"/>
+	</message>
+	<message custom="" id="639" name="FetchModelMetadataResponse" network="client">
+		<attr name="ugID" type="LWOOBJID"/>
+		<attr name="objectID" type="LWOOBJID"/>
+		<attr name="requestorID" type="LWOOBJID"/>
+		<attr name="context" type="int"/>
+		<attr default="false" name="bHasUGData" type="bool"/>
+		<attr default="false" name="bHasBPData" type="bool"/>
+		<attr name="ugData" type="UGObjectMetadata"/>
+		<attr name="bpData" type="BlueprintMetadata"/>
+	</message>
+	<message id="640" name="CommandPet" network="server">
+		<attr name="iPetCommandType" type="int"/>
+		<attr name="iTypeID" type="int"/>
+		<attr name="ObjIDSource" type="LWOOBJID"/>
+		<attr name="GenericPosInfo" type="NiPoint3"/>
+		<attr default="false" name="overrideObey" type="bool"/>
+	</message>
+	<message id="641" name="PetResponse" network="duplicatedclient">
+		<attr name="iResponse" type="int"/>
+		<attr name="iPetCommandType" type="int"/>
+		<attr name="iTypeID" type="int"/>
+		<attr name="ObjIDPet" type="LWOOBJID"/>
+	</message>
+	<message id="648" name="RequestActivitySummaryLeaderboardData" network="server">
+		<attr default="1" name="queryType" type="int"/>
+		<attr name="weekly" type="bool"/>
+		<attr name="target" type="LWOOBJID"/>
+		<attr default="LWOOBJID_EMPTY" name="gameID" type="int"/>
+		<attr default="0" name="resultsStart" type="int"/>
+		<attr default="10" name="resultsEnd" type="int"/>
+	</message>
+	<message id="649" name="SendActivitySummaryLeaderboardData" network="client">
+		<attr name="infoType" type="int"/>
+		<attr name="gameID" type="int"/>
+		<attr name="weekly" type="bool"/>
+		<attr name="throttled" type="bool"/>
+		<attr name="leaderboardData" type="LwoNameValue"/>
+	</message>
+	<message id="659" name="ClientNotifyPet" network="client">
+		<attr name="iPetNotificationType" type="int"/>
+		<attr name="ObjIDSource" type="LWOOBJID"/>
+	</message>
+	<message id="660" name="NotifyPet" network="server">
+		<attr name="iPetNotificationType" type="int"/>
+		<attr name="ObjIDSource" type="LWOOBJID"/>
+		<attr name="ObjToNotifyPetAbout" type="LWOOBJID"/>
+	</message>
+	<message id="661" name="NotifyPetTamingMinigame" network="duplicatedclient">
+		<enum name="eNotifyType">
+			<value name="SUCCESS"/>
+			<value name="QUIT"/>
+			<value name="FAILED"/>
+			<value name="BEGIN"/>
+			<value name="READY"/>
+			<value name="NAMINGPET"/>
+		</enum>
+		<attr name="notifyType" type="eNotifyType"/>
+		<attr name="PlayerTamingID" type="LWOOBJID"/>
+		<attr name="PetID" type="LWOOBJID"/>
+		<attr name="bForceTeleport" type="bool"/>
+		<attr name="telePos" type="NiPoint3"/>
+		<attr default="NiQuaternion::IDENTITY" name="teleRot" type="NiQuaternion"/>
+		<attr name="petsDestPos" type="NiPoint3"/>
+	</message>
+	<message id="662" name="StartServerPetMinigameTimer" network="server"/>
+	<message id="663" name="ClientExitTamingMinigame" network="server">
+		<attr default="true" name="bVoluntaryExit" type="bool"/>
+	</message>
+	<message id="667" name="PetTamingMinigameResult" network="server">
+		<attr name="bSuccess" type="bool"/>
+	</message>
+	<message id="668" name="PetTamingTryBuildResult" network="client">
+		<attr default="true" name="bSuccess" type="bool"/>
+		<attr default="0" name="iNumCorrect" type="int"/>
+	</message>
+	<message id="673" name="NotifyTamingBuildSuccess" network="server">
+		<attr name="BuildPosition" type="NiPoint3"/>
+	</message>
+	<message id="674" name="NotifyTamingModelLoadedOnServer" network="client"/>
+	<message custom="" id="675" name="NotifyPetTamingPuzzleSelected" network="client">
+		<attr name="randBrickIDList" type="std::vector&lt;PetTamingPiece&gt;"/>
+		<attr name="iPuzzleIndex" type="int"/>
+	</message>
+	<message id="681" name="AddPetToPlayer" network="duplicatedclient">
+		<attr name="petLOT" type="LOT"/>
+		<attr name="petDBID" type="LWOOBJID"/>
+		<attr name="iElementalType" type="int"/>
+		<attr name="name" type="std::wstring"/>
+	</message>
+	<message id="683" name="RequestSetPetName" network="server">
+		<attr name="name" type="std::wstring"/>
+	</message>
+	<message id="684" name="SetPetName" network="duplicatedclient">
+		<attr name="name" type="std::wstring"/>
+		<attr default="LWOOBJID_EMPTY" name="petDBID" type="LWOOBJID"/>
+	</message>
+	<message id="686" name="PetNameChanged" network="client">
+		<attr name="ownerName" type="std::wstring"/>
+		<attr name="name" type="std::wstring"/>
+		<attr name="moderationStatus" type="int"/>
+	</message>
+	<message id="692" name="ShowPetActionButton" network="client">
+		<attr name="bShow" type="bool"/>
+		<attr name="ButtonLabel" type="int"/>
+	</message>
+	<message id="693" name="SetEmoteLockState" network="duplicatedclient">
+		<attr name="emoteID" type="int"/>
+		<attr name="bLock" type="bool"/>
+	</message>
+	<message id="703" name="UseItemRequirementsResponse" network="client">
+		<attr name="eUseResponse" type="unsigned int"/>
+	</message>
+	<message id="713" name="PlayEmbeddedEffectOnAllClientsNearObject" network="client">
+		<attr name="radius" type="float"/>
+		<attr name="fromObjectID" type="LWOOBJID"/>
+		<attr name="effectName" type="std::wstring"/>
+	</message>
+	<message custom="" id="716" name="DownloadPropertyData" network="client">
+		<attr name="data" type="PropertyData"/>
+	</message>
+	<message id="717" name="QueryPropertyData" network="server"/>
+	<message id="724" name="PropertyEditorBegin" network="duplicatedserver">
+		<attr default="LWOOBJID_EMPTY" name="propertyObjectID" type="LWOOBJID"/>
+		<attr default="0" name="distanceType" type="int"/>
+		<attr default="1" name="startMode" type="int"/>
+		<attr default="0" name="startPaused" type="bool"/>
+	</message>
+	<message id="725" name="PropertyEditorEnd" network="duplicatedserver"/>
+	<message id="737" name="NotifyClientZoneObject" network="duplicatedclient">
+		<attr name="name" type="std::wstring"/>
+		<attr name="param1" type="int"/>
+		<attr name="param2" type="int"/>
+		<attr name="paramStr" type="std::string"/>
+		<attr name="paramObj" type="LWOOBJID"/>
+	</message>
+	<message id="746" name="UpdateReputation" network="duplicatedclient">
+		<attr name="iReputation" type="__int64"/>
+	</message>
+	<message id="750" name="PropertyRentalResponse" network="client">
+		<attr name="code" type="int"/>
+		<attr name="propertyID" type="LWOOBJID"/>
+		<attr name="rentdue" type="__int64"/>
+		<attr name="cloneid" type="LWOCLONEID"/>
+	</message>
+	<message id="760" name="RequestPlatformResync" network="server"/>
+	<message id="761" name="PlatformResync" network="client">
+		<attr name="eCommand" type="int"/>
+		<attr name="eState" type="int"/>
+		<attr name="iIndex" type="int"/>
+		<attr name="iNextIndex" type="int"/>
+		<attr name="bReverse" type="bool"/>
+		<attr name="fPercentBetweenPoints" type="float"/>
+		<attr name="fIdleTimeElapsed" type="float"/>
+		<attr name="fMoveTimeElapsed" type="float"/>
+		<attr name="iDesiredWaypointIndex" type="int"/>
+		<attr name="bStopAtDesiredWaypoint" type="bool"/>
+		<attr name="eUnexpectedCommand" type="int"/>
+		<attr name="ptUnexpectedLocation" type="NiPoint3"/>
+		<attr default="NiQuaternion::IDENTITY" name="qUnexpectedRotation" type="NiQuaternion"/>
+	</message>
+	<message id="762" name="PlayCinematic" network="client">
+		<enum name="EndBehavior">
+			<value name="RETURN"/>
+			<value name="WAIT"/>
+		</enum>
+		<attr name="pathName" type="std::wstring"/>
+		<attr default="-1.0f" name="leadIn" type="float"/>
+		<attr default="RETURN" name="endBehavior" type="EndBehavior"/>
+		<attr default="false" name="skipIfSamePath" type="bool"/>
+		<attr default="true" name="lockPlayer" type="bool"/>
+		<attr default="false" name="leavePlayerLockedWhenFinished" type="bool"/>
+		<attr default="false" name="hidePlayerDuringCine" type="bool"/>
+		<attr default="false" name="result" type="bool"/>
+		<attr name="startTimeAdvance" type="float"/>
+		<attr default="true" name="allowGhostUpdates" type="bool"/>
+		<attr name="bSendServerNotify" type="bool"/>
+		<attr name="bCloseMultiInteract" type="bool"/>
+		<attr default="false" name="bUseControlledObjectForAudioListener" type="bool"/>
+		<attr name="bIsSkippable" type="bool"/>
+	</message>
+	<message id="763" name="EndCinematic" network="client">
+		<attr default="-1.0f" name="leadOut" type="float"/>
+		<attr default="false" name="leavePlayerLocked" type="bool"/>
+		<attr name="pathName" type="std::wstring"/>
+	</message>
+	<message id="764" name="CinematicUpdate" network="duplicatedserver">
+		<enum name="CinematicEvent">
+			<value name="STARTED"/>
+			<value name="WAYPOINT"/>
+			<value name="ENDED"/>
+		</enum>
+		<attr name="pathName" type="std::wstring"/>
+		<attr default="STARTED" name="event" type="CinematicEvent"/>
+		<attr default="-1" name="waypoint" type="int"/>
+		<attr default="-1.0f" name="pathTime" type="float"/>
+		<attr default="-1.0f" name="overallTime" type="float"/>
+	</message>
+	<message id="767" name="ToggleGhostReferenceOverride" network="duplicatedserver">
+		<attr default="false" name="override" type="bool"/>
+	</message>
+	<message id="768" name="SetGhostReferencePosition" network="duplicatedserver">
+		<attr name="pos" type="NiPoint3"/>
+	</message>
+	<message id="770" name="FireEventServerSide" network="server">
+		<attr name="senderID" type="LWOOBJID"/>
+		<attr name="args" type="std::wstring"/>
+		<attr default="-1" name="param1" type="int"/>
+		<attr default="-1" name="param2" type="int"/>
+		<attr default="-1" name="param3" type="int"/>
+	</message>
+	<message id="781" name="ScriptNetworkVarUpdate" network="client">
+		<attr name="tableOfVars" type="LwoNameValue"/>
+	</message>
+	<message id="793" name="UpdateModelFromClient" network="server">
+		<attr name="modelID" type="LWOOBJID"/>
+		<attr name="position" type="NiPoint3"/>
+		<attr default="NiQuaternion::IDENTITY" name="rotation" type="NiQuaternion"/>
+	</message>
+	<message id="794" name="DeleteModelFromClient" network="duplicatedserver">
+		<enum name="DeleteReason">
+			<value name="PICKING_MODEL_UP"/>
+			<value name="RETURNING_MODEL_TO_INVENTORY"/>
+			<value name="BREAKING_MODEL_APART"/>
+		</enum>
+		<attr default="LWOOBJID_EMPTY" name="modelID" type="LWOOBJID"/>
+		<attr default="PICKING_MODEL_UP" name="reason" type="DeleteReason"/>
+	</message>
+	<message id="821" name="PlayNDAudioEmitter" network="client">
+		<attr default="false" name="m_Result" type="bool"/>
+		<attr default="NDAudio::g_NDAudioIDNone" name="m_NDAudioEmitterID" type="NDAudio::TNDAudioID"/>
+		<attr name="m_NDAudioEventGUID" type="std::string"/>
+		<attr name="m_NDAudioMetaEventName" type="std::string"/>
+		<attr default="LWOOBJID_EMPTY" name="m_TargetObjectIDForNDAudioCallbackMessages" type="LWOOBJID"/>
+		<attr default="0" name="m_NDAudioCallbackMessageData" type="__int64"/>
+	</message>
+	<message id="822" name="StopNDAudioEmitter" network="client">
+		<attr default="false" name="m_Result" type="bool"/>
+		<attr default="NDAudio::g_NDAudioIDNone" name="m_NDAudioEmitterID" type="NDAudio::TNDAudioID"/>
+		<attr name="m_NDAudioEventGUID" type="std::string"/>
+		<attr name="m_NDAudioMetaEventName" type="std::string"/>
+		<attr default="true" name="m_AllowNativeFadeOut" type="bool"/>
+	</message>
+	<message id="840" name="EnterProperty1" network="server">
+		<attr name="index" type="int"/>
+		<attr default="true" name="returnToZone" type="bool"/>
+	</message>
+	<message id="842" name="PropertyEntranceSync" network="server">
+		<attr name="bUpdateUI" type="bool"/>
+		<attr name="lStartIndex" type="int"/>
+		<attr name="lNumResults" type="int"/>
+		<attr name="lSortMethod" type="int"/>
+		<attr name="lReputationTime" type="int"/>
+		<attr name="bPlayersOwn" type="bool"/>
+		<attr name="sfilterText" type="std::string"/>
+		<attr name="bIncludeNullAddress" type="bool"/>
+		<attr name="bIncludeNullDescription" type="bool"/>
+	</message>
+	<message custom="" id="845" name="PropertySelectQuery" network="client">
+		<attr name="navOffset" type="int"/>
+		<attr name="bThereAreMore" type="bool"/>
+		<attr name="myCloneID" type="int"/>
+		<attr name="bHasFeaturedProperty" type="bool"/>
+		<attr name="bWasFriends" type="bool"/>
+		<attr name="items" type="PROPERTYCLONELIST"/>
+	</message>
+	<message id="850" name="ParseChatMessage" network="duplicatedserver">
+		<attr name="wsString" type="std::wstring"/>
+		<attr name="iClientState" type="int"/>
+	</message>
+	<message id="851" name="SetMissionTypeState" network="duplicated">
+		<enum name="EMissionLockState">
+			<value name="LOCKED"/>
+			<value name="NEW"/>
+			<value name="UNLOCKED"/>
+		</enum>
+		<attr name="type" type="std::string"/>
+		<attr name="subtype" type="std::string"/>
+		<attr default="NEW" name="state" type="EMissionLockState"/>
+	</message>
+	<message id="858" name="BroadcastTextToChatbox" network="client">
+		<attr name="wsText" type="std::wstring"/>
+		<attr name="attrs" type="LwoNameValue"/>
+	</message>
+	<message id="861" name="OpenPropertyVendor" network="client"/>
+	<message id="868" name="ClientTradeRequest" network="server">
+		<attr default="false" name="bNeedInvitePopUp" type="bool"/>
+		<attr name="i64Invitee" type="LWOOBJID"/>
+	</message>
+	<message id="870" name="ServerTradeInvite" network="client">
+		<attr default="false" name="bNeedInvitePopUp" type="bool"/>
+		<attr name="wsName" type="std::wstring"/>
+		<attr name="i64Requestor" type="LWOOBJID"/>
+	</message>
+	<message id="873" name="ServerTradeInitialReply" network="client">
+		<enum name="eResultType">
+			<value name="NOTFOUND"/>
+			<value name="INVITESENT"/>
+			<value name="OUTOFRANGE"/>
+			<value name="ALREADYTRADING"/>
+			<value name="GENERALERROR"/>
+		</enum>
+		<attr name="wsName" type="std::wstring"/>
+		<attr name="i64Invitee" type="LWOOBJID"/>
+		<attr name="resultType" type="eResultType"/>
+	</message>
+	<message id="874" name="ServerTradeFinalReply" network="client">
+		<attr name="wsName" type="std::wstring"/>
+		<attr name="i64Invitee" type="LWOOBJID"/>
+		<attr name="bResult" type="bool"/>
+	</message>
+	<message custom="" id="875" name="ClientTradeUpdate" network="server">
+		<attr name="i64Currency" type="__int64"/>
+		<attr name="inventoryMap" type="TMapItem"/>
+	</message>
+	<message custom="" id="877" name="ServerTradeUpdate" network="client">
+		<attr default="false" name="bAboutToPerform" type="bool"/>
+		<attr name="i64Currency" type="__int64"/>
+		<attr name="inventoryMap" type="TMapItem"/>
+	</message>
+	<message id="878" name="ClientTradeCancel" network="server"/>
+	<message id="880" name="ClientTradeAccept" network="server">
+		<attr default="false" name="bFirst" type="bool"/>
+	</message>
+	<message id="884" name="ServerTradeAccept" network="client">
+		<attr default="false" name="bFirst" type="bool"/>
+	</message>
+	<message id="888" name="ReadyForUpdates" network="server">
+		<attr name="objectID" type="LWOOBJID"/>
+	</message>
+	<message id="890" name="SetLastCustomBuild" network="duplicatedserver">
+		<attr name="tokenizedLOTList" type="std::wstring"/>
+	</message>
+	<message id="891" name="GetLastCustomBuild" network="client">
+		<attr name="tokenizedLOTList" type="std::wstring"/>
+	</message>
+	<message id="903" name="SetIgnoreProjectileCollision" network="duplicated">
+		<attr default="false" name="bShouldIgnore" type="bool"/>
+	</message>
+	<message id="905" name="OrientToObject" network="duplicatedclient">
+		<attr name="objID" type="LWOOBJID"/>
+	</message>
+	<message id="906" name="OrientToPosition" network="duplicatedclient">
+		<attr name="ni3Posit" type="NiPoint3"/>
+	</message>
+	<message id="907" name="OrientToAngle" network="duplicatedclient">
+		<attr name="fAngle" type="float"/>
+		<attr name="bRelativeToCurrent" type="bool"/>
+	</message>
+	<message custom="" id="913" name="PropertyBuildModeUpdate" network="duplicatedclient">
+		<attr name="bStart" type="bool"/>
+		<attr name="friendList" type="std::map&lt;LWOOBJID,bool&gt;"/>
+		<attr default="0" name="numSent" type="int"/>
+	</message>
+	<message id="915" name="PropertyModerationAction" network="server">
+		<attr default="0" name="characterID" type="LWOOBJID"/>
+		<attr default="-1" name="newModerationStatus" type="int"/>
+		<attr name="info" type="std::wstring"/>
+	</message>
+	<message id="917" name="PropertyModerationStatusUpdate" network="duplicated">
+		<attr default="-1" name="newModerationStatus" type="int"/>
+		<attr name="rejectionReason" type="std::wstring"/>
+	</message>
+	<message id="932" name="BounceNotification" network="server">
+		<attr name="ObjIDBouncer" type="LWOOBJID"/>
+		<attr name="ObjIDBounced" type="LWOOBJID"/>
+		<attr name="bSuccess" type="bool"/>
+	</message>
+	<message id="934" name="RequestClientBounce" network="client">
+		<attr name="RequestSourceID" type="LWOOBJID"/>
+		<attr name="BounceTargetID" type="LWOOBJID"/>
+		<attr name="BounceTargetPosOnServer" type="NiPoint3"/>
+		<attr name="BouncedObjLinVel" type="NiPoint3"/>
+		<attr name="bAllBounced" type="bool"/>
+		<attr name="bAllowClientOverride" type="bool"/>
+	</message>
+	<message id="942" name="BouncerActiveStatus" network="client">
+		<attr name="bActive" type="bool"/>
+	</message>
+	<message id="957" name="MoveInventoryBatch" network="duplicated">
+		<attr default="1" name="count" type="unsigned int"/>
+		<attr default="LOT_NULL" name="moveLOT" type="LOT"/>
+		<attr default="LWOOBJID_EMPTY" name="moveSubkey" type="LWOOBJID"/>
+		<attr default="0" name="srcBag" type="int"/>
+		<attr default="0" name="dstBag" type="int"/>
+		<attr default="LWOOBJID_EMPTY" name="startObjectID" type="LWOOBJID"/>
+		<attr default="false" name="bAllowPartial" type="bool"/>
+		<attr default="false" name="bOutSuccess" type="bool"/>
+		<attr default="false" name="showFlyingLoot" type="bool"/>
+	</message>
+	<message id="980" name="ObjectActivatedClient" network="client">
+		<attr name="activatorID" type="LWOOBJID"/>
+		<attr name="objectActivatedID" type="LWOOBJID"/>
+	</message>
+	<message id="996" name="SetBBBAutosave" network="server">
+		<attr name="lxfmlDataCompressed" type="BinaryBuffer"/>
+	</message>
+	<message id="1000" name="BBBLoadItemRequest" network="server">
+		<attr name="itemID" type="LWOOBJID"/>
+	</message>
+	<message id="1001" name="BBBSaveRequest" network="server">
+		<attr name="localID" type="LWOOBJID"/>
+		<attr name="lxfmlDataCompressed" type="BinaryBuffer"/>
+		<attr name="timeTakenInMS" type="unsigned int"/>
+	</message>
+	<message id="1004" name="BBBResetMetadataSourceItem" network="server"/>
+	<message id="1042" name="NotifyClientObject" network="client">
+		<attr name="name" type="std::wstring"/>
+		<attr name="param1" type="int"/>
+		<attr name="param2" type="int"/>
+		<attr name="paramStr" type="std::string"/>
+		<attr name="paramObj" type="LWOOBJID"/>
+	</message>
+	<message id="1043" name="DisplayZoneSummary" network="client">
+		<attr default="LWOOBJID_EMPTY" name="sender" type="LWOOBJID"/>
+		<attr default="false" name="isZoneStart" type="bool"/>
+		<attr default="false" name="isPropertyMap" type="bool"/>
+	</message>
+	<message id="1044" name="ZoneSummaryDismissed" network="duplicatedserver">
+		<attr name="playerID" type="LWOOBJID"/>
+	</message>
+	<message id="1046" name="ModifyPlayerZoneStatistic" network="duplicated">
+		<attr default="LWOMAPID_INVALID" name="zoneID" type="LWOMAPID"/>
+		<attr name="statName" type="std::wstring"/>
+		<attr default="0" name="statValue" type="int"/>
+		<attr default="false" name="bSet" type="bool"/>
+	</message>
+	<message id="1053" name="ActivityStateChangeRequest" network="server">
+		<attr name="wsStringValue" type="std::wstring"/>
+		<attr name="iNumValue1" type="int"/>
+		<attr name="iNumValue2" type="int"/>
+		<attr name="i64ObjID" type="LWOOBJID"/>
+	</message>
+	<message id="1057" name="StartBuildingWithItem" network="server">
+		<attr name="sourceID" type="LWOOBJID"/>
+		<attr name="sourceBAG" type="int"/>
+		<attr name="sourceLOT" type="LOT"/>
+		<attr name="sourceTYPE" type="int"/>
+		<attr name="targetID" type="LWOOBJID"/>
+		<attr name="targetPOS" type="NiPoint3"/>
+		<attr name="targetLOT" type="LOT"/>
+		<attr name="targetTYPE" type="int"/>
+		<attr name="bSuccess" type="bool"/>
+		<attr default="true" name="bFirstTime" type="bool"/>
+	</message>
+	<message id="1061" name="StartArrangingWithItem" network="duplicatedclient">
+		<attr name="sourceID" type="LWOOBJID"/>
+		<attr name="sourceBAG" type="int"/>
+		<attr name="sourceLOT" type="LOT"/>
+		<attr name="sourceTYPE" type="int"/>
+		<attr name="targetID" type="LWOOBJID"/>
+		<attr name="targetPOS" type="NiPoint3"/>
+		<attr name="targetLOT" type="LOT"/>
+		<attr name="targetTYPE" type="int"/>
+		<attr default="LWOOBJID_EMPTY" name="buildAreaID" type="LWOOBJID"/>
+		<attr name="buildStartPOS" type="NiPoint3"/>
+		<attr default="true" name="bFirstTime" type="bool"/>
+	</message>
+	<message id="1062" name="FinishArrangingWithItem" network="client">
+		<attr name="oldItemID" type="LWOOBJID"/>
+		<attr name="oldItemBAG" type="int"/>
+		<attr name="oldItemLOT" type="LOT"/>
+		<attr name="oldItemTYPE" type="int"/>
+		<attr name="newSourceID" type="LWOOBJID"/>
+		<attr name="newSourceBAG" type="int"/>
+		<attr name="newSourceLOT" type="LOT"/>
+		<attr name="newSourceTYPE" type="int"/>
+		<attr name="newTargetID" type="LWOOBJID"/>
+		<attr name="newtargetPOS" type="NiPoint3"/>
+		<attr name="newTargetLOT" type="LOT"/>
+		<attr name="newTargetTYPE" type="int"/>
+		<attr default="LWOOBJID_EMPTY" name="buildAreaID" type="LWOOBJID"/>
+	</message>
+	<message id="1063" name="DoneArrangingWithItem" network="server">
+		<attr name="oldItemID" type="LWOOBJID"/>
+		<attr name="oldItemBAG" type="int"/>
+		<attr name="oldItemLOT" type="LOT"/>
+		<attr name="oldItemTYPE" type="int"/>
+		<attr name="newSourceID" type="LWOOBJID"/>
+		<attr name="newSourceBAG" type="int"/>
+		<attr name="newSourceLOT" type="LOT"/>
+		<attr name="newSourceTYPE" type="int"/>
+		<attr name="newTargetID" type="LWOOBJID"/>
+		<attr name="newtargetPOS" type="NiPoint3"/>
+		<attr name="newTargetLOT" type="LOT"/>
+		<attr name="newTargetTYPE" type="int"/>
+	</message>
+	<message id="1068" name="SetBuildMode" network="duplicated">
+		<attr name="bStart" type="bool"/>
+		<attr default="1" name="modeValue" type="int"/>
+		<attr default="false" name="modePaused" type="bool"/>
+		<attr name="playerID" type="LWOOBJID"/>
+		<attr default="NiPoint3::ZERO" name="startPos" type="NiPoint3"/>
+		<attr default="-1" name="distanceType" type="int"/>
+	</message>
+	<message id="1069" name="BuildModeSet" network="duplicated">
+		<attr name="bStart" type="bool"/>
+		<attr default="1" name="modeValue" type="int"/>
+		<attr default="false" name="modePaused" type="bool"/>
+		<attr name="playerID" type="LWOOBJID"/>
+		<attr default="NiPoint3::ZERO" name="startPos" type="NiPoint3"/>
+		<attr default="-1" name="distanceType" type="int"/>
+	</message>
+	<message id="1072" name="BuildExitConfirmation" network="server">
+		<attr name="playerID" type="LWOOBJID"/>
+	</message>
+	<message id="1073" name="SetBuildModeConfirmed" network="duplicatedclient">
+		<attr name="bStart" type="bool"/>
+		<attr default="1" name="modeValue" type="int"/>
+		<attr default="false" name="modePaused" type="bool"/>
+		<attr name="playerID" type="LWOOBJID"/>
+		<attr default="NiPoint3::ZERO" name="startPos" type="NiPoint3"/>
+		<attr default="true" name="bWarnVisitors" type="bool"/>
+	</message>
+	<message id="1075" name="BuildModeNotificationReport" network="client">
+		<attr name="bStart" type="bool"/>
+		<attr name="numSent" type="int"/>
+	</message>
+	<message id="1077" name="SetModelToBuild" network="client">
+		<attr default="-1" name="templateID" type="LOT"/>
+	</message>
+	<message id="1078" name="SpawnModelBricks" network="client">
+		<attr default="0.0f" name="amount" type="float"/>
+		<attr default="NiPoint3::ZERO" name="pos" type="NiPoint3"/>
+	</message>
+	<message id="1081" name="NotifyClientFailedPrecondition" network="client">
+		<attr name="PreconditionID" type="int"/>
+		<attr name="FailedReason" type="std::wstring"/>
+	</message>
+	<message id="1093" name="MoveItemBetweenInventoryTypes" network="duplicatedserver">
+		<attr default="LOT_NULL" name="templateID" type="LOT"/>
+		<attr name="objectID" type="LWOOBJID"/>
+		<attr name="inventoryTypeA" type="int"/>
+		<attr name="inventoryTypeB" type="int"/>
+		<attr default="true" name="showFlyingLoot" type="bool"/>
+		<attr default="1" name="stackCount" type="unsigned int"/>
+	</message>
+	<message custom="" id="1097" name="ModularBuildFinish" network="duplicatedserver">
+		<attr name="vModuleTemplateIDs" type="std::vector&lt;LOT&gt;"/>
+	</message>
+	<message id="1129" name="MissionDialogueCancelled" network="duplicatedserver">
+		<attr name="responder" type="LWOOBJID"/>
+		<attr name="bIsComplete" type="bool"/>
+		<attr name="missionID" type="int"/>
+		<attr name="iMissionState" type="int"/>
+	</message>
+	<message id="1131" name="ModuleAssemblyDBDataForClient" network="client">
+		<attr name="assemblyID" type="LWOOBJID"/>
+		<attr name="blob" type="std::wstring"/>
+	</message>
+	<message id="1132" name="ModuleAssemblyQueryData" network="server"/>
+	<message id="1144" name="EchoSyncSkill" network="client">
+		<attr name="sBitStream" type="std::string"/>
+		<attr name="uiSkillHandle" type="unsigned int"/>
+		<attr name="uiBehaviorHandle" type="unsigned int"/>
+		<attr default="false" name="bDone" type="bool"/>
+	</message>
+	<message id="1145" name="SyncSkill" network="server">
+		<attr name="sBitStream" type="std::string"/>
+		<attr name="uiSkillHandle" type="unsigned int"/>
+		<attr name="uiBehaviorHandle" type="unsigned int"/>
+		<attr default="false" name="bDone" type="bool"/>
+	</message>
+	<message id="1148" name="RequestServerProjectileImpact" network="server">
+		<attr default="LWOOBJID_EMPTY" name="i64TargetID" type="LWOOBJID"/>
+		<attr default="LWOOBJID_EMPTY" name="i64LocalID" type="LWOOBJID"/>
+		<attr name="sBitStream" type="std::string"/>
+	</message>
+	<message id="1151" name="DoClientProjectileImpact" network="client">
+		<attr default="LWOOBJID_EMPTY" name="i64OrgID" type="LWOOBJID"/>
+		<attr default="LWOOBJID_EMPTY" name="i64OwnerID" type="LWOOBJID"/>
+		<attr default="LWOOBJID_EMPTY" name="i64TargetID" type="LWOOBJID"/>
+		<attr name="sBitStream" type="std::string"/>
+	</message>
+	<message id="1165" name="SetPlayerAllowedRespawn" network="duplicatedclient">
+		<attr name="dontPromptForRespawn" type="bool"/>
+	</message>
+	<message id="1166" name="ToggleSendingPositionUpdates" network="server">
+		<attr default="false" name="bSendUpdates" type="bool"/>
+	</message>
+	<message id="1170" name="PlacePropertyModel" network="duplicatedserver">
+		<attr name="modelID" type="LWOOBJID"/>
+	</message>
+	<message id="1184" name="UIMessageServerToSingleClient" network="client">
+		<attr name="strMessageName" type="std::string"/>
+		<attr name="args" type="NDGFxValue"/>
+	</message>
+	<message custom="" id="1197" name="PetTamingTryBuild" network="server">
+		<attr name="currentSelections" type="std::vector&lt;PetTamingPiece&gt;"/>
+		<attr default="false" name="clientFailed" type="bool"/>
+	</message>
+	<message id="1206" name="UncastSkill" network="duplicatedclient">
+		<attr name="skillID" type="int"/>
+	</message>
+	<message id="1213" name="FireEventClientSide" network="client">
+		<attr name="senderID" type="LWOOBJID"/>
+		<attr name="args" type="std::wstring"/>
+		<attr name="object" type="LWOOBJID"/>
+		<attr default="0" name="param1" type="__int64"/>
+		<attr default="-1" name="param2" type="int"/>
+	</message>
+	<message id="1223" name="ChangeObjectWorldState" network="duplicatedclient">
+		<attr default="WORLDSTATE_INWORLD" name="newState" type="eObjectWorldState"/>
+	</message>
+	<message id="1230" name="VehicleLockInput" network="duplicatedclient">
+		<attr default="true" name="bLockWheels" type="bool"/>
+		<attr default="0.0f" name="fLockedX" type="float"/>
+		<attr default="0.0f" name="fLockedY" type="float"/>
+		<attr default="false" name="bLockedPowerslide" type="bool"/>
+	</message>
+	<message id="1231" name="VehicleUnlockInput" network="duplicatedclient">
+		<attr default="true" name="bLockWheels" type="bool"/>
+	</message>
+	<message id="1238" name="ResyncEquipment" network="server"/>
+	<message id="1252" name="RacingResetPlayerToLastReset" network="duplicatedclient">
+		<attr name="playerID" type="LWOOBJID"/>
+	</message>
+	<message id="1254" name="RacingSetPlayerResetInfo" network="client">
+		<attr name="playerID" type="LWOOBJID"/>
+		<attr name="furthestResetPlane" type="unsigned int"/>
+		<attr name="upcomingPlane" type="unsigned int"/>
+		<attr name="currentLap" type="int"/>
+		<attr name="respawnPos" type="NiPoint3"/>
+	</message>
+	<message id="1255" name="RacingPlayerInfoResetFinished" network="server">
+		<attr name="playerID" type="LWOOBJID"/>
+	</message>
+	<message id="1260" name="LockNodeRotation" network="client">
+		<attr name="nodeName" type="std::string"/>
+	</message>
+	<message id="1273" name="VehicleSetWheelLockState" network="server">
+		<attr default="false" name="bLocked" type="bool"/>
+		<attr default="true" name="bExtraFriction" type="bool"/>
+	</message>
+	<message id="1276" name="NotifyVehicleOfRacingObject" network="duplicatedclient">
+		<attr default="LWOOBJID_EMPTY" name="racingObjectID" type="LWOOBJID"/>
+	</message>
+	<message id="1296" name="PlayerReachedRespawnCheckpoint" network="duplicatedclient">
+		<attr name="pos" type="NiPoint3"/>
+		<attr default="NiQuaternion::IDENTITY" name="rot" type="NiQuaternion"/>
+	</message>
+	<message id="1300" name="HandleUGCEquipPostDeleteBasedOnEditMode" network="client">
+		<attr default="0" name="itemsTotal" type="int"/>
+		<attr name="invItem" type="LWOOBJID"/>
+	</message>
+	<message id="1301" name="HandleUGCEquipPreCreateBasedOnEditMode" network="client">
+		<attr name="modelID" type="LWOOBJID"/>
+		<attr name="modelCount" type="int"/>
+		<attr name="bOnCursor" type="bool"/>
+	</message>
+	<message id="1305" name="PropertyContentsFromClient" network="server">
+		<attr default="false" name="queryDB" type="bool"/>
+	</message>
+	<message custom="" id="1306" name="GetModelsOnProperty" network="client">
+		<attr name="modelIDs" type="std::vector&lt;LWOOBJID&gt;"/>
+		<attr name="spawnerIDs" type="std::vector&lt;LWOOBJID&gt;"/>
+	</message>
+	<message custom="" id="1308" name="MatchRequest" network="server">
+		<attr name="type" type="int"/>
+		<attr name="value" type="int"/>
+		<attr name="activator" type="LWOOBJID"/>
+		<attr name="playerChoices" type="LwoNameValue"/>
+		<attr name="additionalPlayers" type="std::map&lt;LWOOBJID, LwoNameValue&gt;"/>
+	</message>
+	<message id="1309" name="MatchResponse" network="client">
+		<attr name="response" type="int"/>
+	</message>
+	<message id="1310" name="MatchUpdate" network="client">
+		<attr name="type" type="int"/>
+		<attr name="data" type="LwoNameValue"/>
+	</message>
+	<message id="1338" name="ChangeIdleFlags" network="client">
+		<attr default="0" name="on" type="int"/>
+		<attr default="0" name="off" type="int"/>
+	</message>
+	<message id="1340" name="VehicleAddPassiveBoostAction" network="duplicatedclient"/>
+	<message id="1341" name="VehicleRemovePassiveBoostAction" network="duplicatedclient"/>
+	<message id="1342" name="VehicleNotifyServerAddPassiveBoostAction" network="server"/>
+	<message id="1343" name="VehicleNotifyServerRemovePassiveBoostAction" network="server"/>
+	<message id="1370" name="ZonePropertyModelRotated" network="server">
+		<attr default="LWOOBJID_EMPTY" name="playerID" type="LWOOBJID"/>
+		<attr default="LWOOBJID_EMPTY" name="propertyID" type="LWOOBJID"/>
+	</message>
+	<message id="1371" name="ZonePropertyModelRemovedWhileEquipped" network="server">
+		<attr default="LWOOBJID_EMPTY" name="playerID" type="LWOOBJID"/>
+		<attr default="LWOOBJID_EMPTY" name="propertyID" type="LWOOBJID"/>
+	</message>
+	<message id="1372" name="ZonePropertyModelEquipped" network="server">
+		<attr default="LWOOBJID_EMPTY" name="playerID" type="LWOOBJID"/>
+		<attr default="LWOOBJID_EMPTY" name="propertyID" type="LWOOBJID"/>
+	</message>
+	<message id="1390" name="NotifyRacingClient" network="client">
+		<enum name="eRacingClientNotificationType">
+			<value name="INVALID"/>
+			<value name="ACTIVITY_START"/>
+			<value name="REWARD_PLAYER"/>
+			<value name="EXIT"/>
+			<value name="REPLAY"/>
+			<value name="REMOVE_PLAYER"/>
+			<value name="LEADERBOARD_UPDATED"/>
+		</enum>
+		<attr default="INVALID" name="EventType" type="eRacingClientNotificationType"/>
+		<attr name="paramStr" type="std::wstring"/>
+		<attr name="paramObj" type="LWOOBJID"/>
+		<attr name="param1" type="int"/>
+		<attr name="singleClient" type="LWOOBJID"/>
+	</message>
+	<message id="1392" name="RacingPlayerLoaded" network="client">
+		<attr name="playerID" type="LWOOBJID"/>
+		<attr name="vehicleID" type="LWOOBJID"/>
+	</message>
+	<message id="1393" name="RacingClientReady" network="server">
+		<attr name="playerID" type="LWOOBJID"/>
+	</message>
+	<message id="1406" name="ResetPropertyBehaviors" network="duplicatedserver">
+		<attr default="true" name="bForce" type="bool"/>
+		<attr default="false" name="bPause" type="bool"/>
+	</message>
+	<message id="1409" name="SetConsumableItem" network="duplicatedserver">
+		<attr name="itemTemplateID" type="LOT"/>
+	</message>
+	<message id="1419" name="UsedInformationPlaque" network="duplicatedserver">
+		<attr name="i64Plaque" type="LWOOBJID"/>
+	</message>
+	<message id="1435" name="SetStatusImmunity" network="duplicatedclient">
+		<enum name="EImmunityState">
+			<value name="PUSH"/>
+			<value name="POP"/>
+		</enum>
+		<attr name="StateChangeType" type="EImmunityState"/>
+		<attr name="bImmuneToKnockback" type="bool"/>
+		<attr name="bImmuneToInterrupt" type="bool"/>
+		<attr name="bImmuneToSpeed" type="bool"/>
+		<attr name="bImmuneToBasicAttack" type="bool"/>
+		<attr name="bImmuneToDOT" type="bool"/>
+		<attr name="bImmuneToImaginationGain" type="bool"/>
+		<attr name="bImmuneToImaginationLoss" type="bool"/>
+		<attr name="bImmuneToQuickbuildInterrupt" type="bool"/>
+		<attr name="bImmuneToPullToPoint" type="bool"/>
+	</message>
+	<message id="1438" name="ActivateBrickMode" network="duplicated">
+		<attr default="true" name="enterFlag" type="bool"/>
+		<attr default="LWOOBJID_EMPTY" name="buildObjectID" type="LWOOBJID"/>
+		<attr default="BUILD_ON_PROPERTY" name="buildType" type="EBuildType"/>
+		<attr default="true" name="enterBuildFromWorld" type="bool"/>
+	</message>
+	<message id="1448" name="SetPetNameModerated" network="duplicatedclient">
+		<attr name="nModerationStatus" type="int"/>
+		<attr default="LWOOBJID_EMPTY" name="PetDBID" type="LWOOBJID"/>
+	</message>
+	<message id="1451" name="CancelSkillCast" network="duplicatedclient"/>
+	<message id="1459" name="ModifyLegoScore" network="duplicatedclient">
+		<attr name="score" type="__int64"/>
+		<attr default="LOOTTYPE_NONE" name="sourceType" type="int"/>
+	</message>
+	<message id="1468" name="RestoreToPostLoadStats" network="duplicatedclient"/>
+	<message id="1471" name="SetRailMovement" network="client">
+		<attr name="pathName" type="std::wstring"/>
+		<attr name="pathStart" type="unsigned int"/>
+		<attr name="pathGoForward" type="bool"/>
+		<attr default="-1" name="railActivatorComponentID" type="int"/>
+		<attr default="LWOOBJID_EMPTY" name="railActivatorObjID" type="LWOOBJID"/>
+	</message>
+	<message id="1472" name="StartRailMovement" network="duplicatedclient">
+		<attr name="pathName" type="std::wstring"/>
+		<attr default="0" name="pathStart" type="unsigned int"/>
+		<attr default="true" name="pathGoForward" type="bool"/>
+		<attr default="-1" name="railActivatorComponentID" type="int"/>
+		<attr default="LWOOBJID_EMPTY" name="railActivatorObjID" type="LWOOBJID"/>
+		<attr default="true" name="collisionEnabled" type="bool"/>
+		<attr default="true" name="useDB" type="bool"/>
+		<attr name="startSound" type="std::wstring"/>
+		<attr name="stopSound" type="std::wstring"/>
+		<attr name="loopSound" type="std::wstring"/>
+		<attr default="true" name="cameraLocked" type="bool"/>
+		<attr default="false" name="bNotifyActivator" type="bool"/>
+		<attr default="true" name="bDamageImmune" type="bool"/>
+		<attr default="true" name="bNoAggro" type="bool"/>
+		<attr default="true" name="bShowNameBillboard" type="bool"/>
+	</message>
+	<message id="1474" name="CancelRailMovement" network="duplicatedserver">
+		<attr default="false" name="bImmediate" type="bool"/>
+	</message>
+	<message id="1476" name="ClientRailMovementReady" network="server"/>
+	<message id="1477" name="PlayerRailArrivedNotification" network="server">
+		<attr name="waypointNumber" type="int"/>
+		<attr name="pathName" type="std::wstring"/>
+	</message>
+	<message id="1478" name="NotifyRailActivatorStateChange" network="client">
+		<attr default="true" name="bActive" type="bool"/>
+	</message>
+	<message id="1479" name="RequestRailActivatorState" network="server"/>
+	<message id="1480" name="NotifyRewardMailed" network="client">
+		<attr name="objectID" type="LWOOBJID"/>
+		<attr name="templateID" type="LOT"/>
+		<attr name="subkey" type="LWOOBJID"/>
+		<attr name="startPoint" type="NiPoint3"/>
+	</message>
+	<message id="1481" name="UpdatePlayerStatistic" network="duplicatedclient">
+		<attr name="updateID" type="int"/>
+		<attr default="1" name="updateValue" type="__int64"/>
+	</message>
+	<message id="1485" name="ModifyGhostingDistance" network="server">
+		<attr default="1.0f" name="fDistanceScalar" type="float"/>
+	</message>
+	<message id="1491" name="RequeryPropertyModels" network="client"/>
+	<message id="1498" name="ModularAssemblyNIFCompleted" network="duplicatedserver">
+		<attr name="objectID" type="LWOOBJID"/>
+	</message>
+	<message custom="" id="1510" name="NewsSendHotPropertiesinfoToClient" network="client">
+		<attr name="vNewsPropertiesInfo" type="std::vector&lt;NewsHotPropertyInfo&gt;"/>
+	</message>
+	<message id="1511" name="GetHotPropertyData" network="server"/>
+	<message id="1516" name="NotifyNotEnoughInvSpace" network="client">
+		<attr default="INVENTORY_DEFAULT" name="inventoryType" type="unsigned int"/>
+		<attr name="freeSlotsNeeded" type="unsigned int"/>
+	</message>
+	<message id="1546" name="NotifyPropertyOfEditMode" network="duplicated">
+		<attr name="bEditingActive" type="bool"/>
+	</message>
+	<message id="1547" name="UpdatePropertyPerformanceCost" network="server">
+		<attr default="0.0f" name="performanceCost" type="float"/>
+	</message>
+	<message id="1553" name="PropertyEntranceBegin" network="client"/>
+	<message id="1557" name="TeamSetLeader" network="duplicatedclient">
+		<attr name="i64PlayerID" type="LWOOBJID"/>
+	</message>
+	<message id="1558" name="TeamInviteConfirm" network="duplicatedclient">
+		<attr name="ucLootFlag" type="unsigned char"/>
+		<attr name="ucNumOfOtherPlayers" type="unsigned char"/>
+		<attr name="ucResponseCode" type="unsigned char"/>
+		<attr name="i64LeaderZoneID" type="LWOZONEID"/>
+		<attr name="i64LeaderID" type="LWOOBJID"/>
+		<attr name="wsLeaderName" type="std::wstring"/>
+		<attr name="sTeamBuffer" type="BinaryBuffer"/>
+		<attr default="false" name="bLeaderIsFreeTrial" type="bool"/>
+	</message>
+	<message id="1559" name="TeamGetStatusResponse" network="duplicatedclient">
+		<attr name="ucLootFlag" type="unsigned char"/>
+		<attr name="ucNumOfOtherPlayers" type="unsigned char"/>
+		<attr name="i64LeaderZoneID" type="LWOZONEID"/>
+		<attr name="i64LeaderID" type="LWOOBJID"/>
+		<attr name="wsLeaderName" type="std::wstring"/>
+		<attr name="sTeamBuffer" type="BinaryBuffer"/>
+	</message>
+	<message id="1562" name="TeamAddPlayer" network="duplicatedclient">
+		<attr name="i64PlayerID" type="LWOOBJID"/>
+		<attr name="wsPlayerName" type="std::wstring"/>
+		<attr default="LWOZONEID_INVALID" name="zoneID" type="LWOZONEID"/>
+		<attr default="false" name="bLocal" type="bool"/>
+		<attr default="false" name="bIsFreeTrial" type="bool"/>
+		<attr default="false" name="bNoLootOnDeath" type="bool"/>
+	</message>
+	<message id="1563" name="TeamRemovePlayer" network="duplicatedclient">
+		<attr name="i64PlayerID" type="LWOOBJID"/>
+		<attr name="wsName" type="std::wstring"/>
+		<attr name="i64LeaderID" type="LWOOBJID"/>
+		<attr name="bIsKicked" type="bool"/>
+		<attr name="bDisband" type="bool"/>
+		<attr name="bIsLeaving" type="bool"/>
+		<attr default="false" name="bLocal" type="bool"/>
+	</message>
+	<message custom="" id="1564" name="TeamCreateLocal" network="duplicatedclient">
+		<attr name="ucLootFlag" type="unsigned char"/>
+		<attr default="-1" name="iLeaderIndex" type="int"/>
+		<attr default="false" name="bNoLootOnDeath" type="bool"/>
+		<attr name="vTeamContainer" type="std::vector&lt;LocalTeamMember&gt;"/>
+	</message>
+	<message id="1577" name="SetEmotesEnabled" network="duplicatedserver">
+		<attr default="true" name="bEnableEmotes" type="bool"/>
+	</message>
+	<message id="1591" name="SetResurrectRestoreValues" network="duplicatedclient">
+		<attr default="-1" name="iHealthRestore" type="int"/>
+		<attr default="-1" name="iImaginationRestore" type="int"/>
+		<attr default="-1" name="iArmorRestore" type="int"/>
+	</message>
+	<message id="1594" name="SetPropertyModerationStatus" network="duplicatedclient">
+		<attr default="-1" name="moderationStatus" type="int"/>
+	</message>
+	<message id="1595" name="UpdatePropertyModelCount" network="duplicatedclient">
+		<attr default="0" name="modelCount" type="unsigned int"/>
+	</message>
+	<message id="1606" name="VehicleNotifyHitImaginationServer" network="server">
+		<attr default="NiPoint3::ZERO" name="vehiclePosition" type="NiPoint3"/>
+		<attr default="LWOOBJID_EMPTY" name="pickupObjID" type="LWOOBJID"/>
+		<attr default="LWOOBJID_EMPTY" name="pickupSpawnerID" type="LWOOBJID"/>
+		<attr default="-1" name="pickupSpawnerIndex" type="int"/>
+	</message>
+	<message id="1617" name="VehicleStopBoost" network="duplicatedclient">
+		<attr default="true" name="bAffectPassive" type="bool"/>
+	</message>
+	<message id="1618" name="StartCelebrationEffect" network="duplicatedclient">
+		<attr default="11164" name="backgroundObject" type="LOT"/>
+		<attr name="animation" type="std::wstring"/>
+		<attr name="iconID" type="unsigned int"/>
+		<attr name="mainText" type="std::wstring"/>
+		<attr name="subText" type="std::wstring"/>
+		<attr name="duration" type="float"/>
+		<attr default="1.0f" name="celeLeadIn" type="float"/>
+		<attr default="0.8f" name="celeLeadOut" type="float"/>
+		<attr name="musicCue" type="std::string"/>
+		<attr name="mixerProgram" type="std::string"/>
+		<attr name="soundGUID" type="std::string"/>
+		<attr default="12458" name="cameraPathLOT" type="LOT"/>
+		<attr name="pathNodeName" type="std::string"/>
+		<attr default="-1" name="celebrationID" type="int"/>
+	</message>
+	<message id="1632" name="CelebrationCompleted" network="duplicatedserver">
+		<attr name="animation" type="std::wstring"/>
+		<attr default="-1" name="celebrationID" type="int"/>
+	</message>
+	<message id="1636" name="SetLocalTeam" network="duplicatedclient">
+		<attr default="false" name="bIsLocal" type="bool"/>
+	</message>
+	<message id="1642" name="ServerDoneLoadingAllObjects" network="client"/>
+	<message id="1647" name="AddBuff" network="duplicatedclient">
+		<attr name="uiBuffID" type="unsigned int"/>
+		<attr name="uiDurationMS" type="unsigned int"/>
+		<attr name="bIsImmunity" type="bool"/>
+		<attr name="bIgnoreImmunities" type="bool"/>
+		<attr default="true" name="bCancelOnDeath" type="bool"/>
+		<attr name="bCancelOnZone" type="bool"/>
+		<attr name="bCancelOnDamaged" type="bool"/>
+		<attr default="true" name="bCancelOnRemoveBuff" type="bool"/>
+		<attr name="bCancelOnUI" type="bool"/>
+		<attr name="bCancelOnLogOut" type="bool"/>
+		<attr name="bCancelOnUnEquip" type="bool"/>
+		<attr name="bCancelOnMove" type="bool"/>
+		<attr name="bCancelOnDamageAbsorbRanOut" type="bool"/>
+		<attr name="bApplyOnTeammates" type="bool"/>
+		<attr name="bAddedByTeammate" type="bool"/>
+		<attr name="bUseRefCount" type="bool"/>
+		<attr name="i64AddedBy" type="LWOOBJID"/>
+		<attr name="casterID" type="LWOOBJID"/>
+	</message>
+	<message id="1648" name="RemoveBuff" network="duplicatedclient">
+		<attr name="uiBuffID" type="unsigned int"/>
+		<attr name="bRemoveImmunity" type="bool"/>
+		<attr name="bFromUnEquip" type="bool"/>
+		<attr name="bFromRemoveBehavior" type="bool"/>
+	</message>
+	<message id="1676" name="PlayerSetCameraCyclingMode" network="client">
+		<enum name="eCyclingMode">
+			<value name="ALLOW_CYCLE_TEAMMATES"/>
+			<value name="DISALLOW_CYCLING"/>
+		</enum>
+		<attr default="true" name="bAllowCyclingWhileDeadOnly" type="bool"/>
+		<attr default="ALLOW_CYCLE_TEAMMATES" name="cyclingMode" type="eCyclingMode"/>
+	</message>
+	<message id="1726" name="SetMountInventoryID" network="duplicatedclient">
+		<attr default="LWOOBJID_EMPTY" name="inventoryMountID" type="LWOOBJID"/>
+	</message>
+	<message id="1734" name="NotifyServerLevelProcessingComplete" network="server"/>
+	<message id="1735" name="NotifyLevelRewards" network="client">
+		<attr name="level" type="int"/>
+		<attr default="false" name="sendingRewards" type="bool"/>
+	</message>
+	<message id="1746" name="ServerCancelMoveSkill" network="server"/>
+	<message id="1747" name="ClientCancelMoveSkill" network="client"/>
+	<message id="1756" name="DismountComplete" network="server">
+		<attr name="mountID" type="LWOOBJID"/>
+	</message>
+	<message id="1767" name="MarkInventoryItemAsActive" network="duplicatedclient">
+		<attr default="LWOOBJID_EMPTY" name="itemID" type="LWOOBJID"/>
+		<attr default="0" name="iType" type="int"/>
+		<attr default="false" name="bActive" type="bool"/>
+	</message>
+</messages>

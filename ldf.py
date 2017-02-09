@@ -1,4 +1,4 @@
-from pyraknet.bitstream import BitStream, c_bool, c_int, c_int64, c_ubyte, c_uint
+from pyraknet.bitstream import BitStream, c_bool, c_float, c_int, c_int64, c_ubyte, c_uint
 
 def from_ldf(ldf):
 	ldf_dict = {}
@@ -11,6 +11,8 @@ def from_ldf(ldf):
 				value = ldf.read(str, length_type=c_uint)
 			elif data_type_id == 1:
 				value = ldf.read(c_int)
+			elif data_type_id == 3:
+				value = ldf.read(c_float)
 			elif data_type_id == 5:
 				value = ldf.read(c_uint)
 			elif data_type_id == 7:
@@ -21,7 +23,7 @@ def from_ldf(ldf):
 				value = ldf.read(bytes, length=ldf.read(c_uint))
 			else:
 				raise NotImplementedError(key, data_type_id)
-			ldf_dict[key] = value
+			ldf_dict[key] = data_type_id, value
 	else:
 		raise NotImplementedError
 
