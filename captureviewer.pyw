@@ -148,7 +148,7 @@ class CaptureViewer(viewer.Viewer):
 			messagebox.showerror("Can not open database", "Make sure db_path in the INI is set correctly.")
 			sys.exit()
 
-		gamemsg_xml = ET.parse(config["paths"]["gamemessages_path"])
+		gamemsg_xml = ET.parse("packetdefinitions/gamemessages.xml")
 		self.gamemsgs = {}
 		for msg in gamemsg_xml.findall("message"):
 			self.gamemsgs[int(msg.get("id"))] = msg
