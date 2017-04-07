@@ -154,10 +154,15 @@ class LUZViewer(viewer.Viewer):
 
 			elif path_type == PathType.Spawner:
 				spawn_lot = stream.read(c_uint)
+				lot_name = str(spawn_lot)
+				try:
+					lot_name += " - "+self.db.execute("select name from Objects where id == "+str(spawn_lot)).fetchone()[0]
+				except TypeError:
+					print("Name for lot", spawn_lot, "not found")
 				unknown3 = stream.read(c_uint), stream.read(c_int), stream.read(c_uint)
 				object_id = stream.read(c_int64)
 				unknown4 = stream.read(c_ubyte)
-				values += spawn_lot, unknown3, object_id, unknown4
+				values += lot_name, unknown3, object_id, unknown4
 
 			path = self.tree.insert(paths, END, text=PathType(path_type).name, values=values)
 

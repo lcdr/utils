@@ -61,7 +61,6 @@
 		<attr name="directionRelative_Force" type="float"/>
 		<attr default="false" name="bClientDeath" type="bool"/>
 		<attr default="true" name="bSpawnLoot" type="bool"/>
-		<attr default="-1.0f" name="coinSpawnTime" type="float"/>
 	</message>
 	<message id="38" name="RequestDie" network="server">
 		<enum name="eKillType">
@@ -70,15 +69,12 @@
 		</enum>
 		<attr name="killerID" type="LWOOBJID"/>
 		<attr name="lootOwnerID" type="LWOOBJID"/>
-		<attr name="bDieAccepted" type="bool"/>
 		<attr default="VIOLENT" name="killType" type="eKillType"/>
 		<attr name="deathType" type="std::wstring"/>
 		<attr name="directionRelative_AngleY" type="float"/>
 		<attr name="directionRelative_AngleXZ" type="float"/>
 		<attr name="directionRelative_Force" type="float"/>
-		<attr default="false" name="bClientDeath" type="bool"/>
-		<attr default="true" name="bSpawnLoot" type="bool"/>
-		<attr default="-1.0f" name="coinSpawnTime" type="float"/>
+		<attr name="bUnknownBoolean" type="bool"/>
 	</message>
 	<message id="41" name="PlayEmote" network="server">
 		<attr name="emoteID" type="int"/>
@@ -794,7 +790,6 @@
 		<attr name="bSendServerNotify" type="bool"/>
 		<attr name="bCloseMultiInteract" type="bool"/>
 		<attr default="false" name="bUseControlledObjectForAudioListener" type="bool"/>
-		<attr name="bIsSkippable" type="bool"/>
 	</message>
 	<message id="763" name="EndCinematic" network="client">
 		<attr default="-1.0f" name="leadOut" type="float"/>

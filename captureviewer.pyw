@@ -164,6 +164,7 @@ class CaptureViewer(viewer.Viewer):
 		self.parse_normal_packets = BooleanVar(value=config["parse"]["normal_packets"])
 		self.retry_with_script_component = BooleanVar(value=config["parse"]["retry_with_script_component"])
 		self.retry_with_trigger_component = BooleanVar(value=config["parse"]["retry_with_trigger_component"])
+		self.retry_with_phantom_component = BooleanVar(value=config["parse"]["retry_with_phantom_component"])
 		self.create_widgets()
 
 	def create_widgets(self):
@@ -177,6 +178,7 @@ class CaptureViewer(viewer.Viewer):
 		parse_menu.add_checkbutton(label="Parse Normal Packets", variable=self.parse_normal_packets)
 		parse_menu.add_checkbutton(label="Retry parsing with script component if failed", variable=self.retry_with_script_component)
 		parse_menu.add_checkbutton(label="Retry parsing with trigger component if failed", variable=self.retry_with_trigger_component)
+		parse_menu.add_checkbutton(label="Retry parsing with phantom component if failed", variable=self.retry_with_phantom_component)
 		menubar.add_cascade(label="Parse", menu=parse_menu)
 		self.master.config(menu=menubar)
 
@@ -250,6 +252,9 @@ class CaptureViewer(viewer.Viewer):
 				lot_name = str(lot)
 			component_types = [i[0] for i in self.db.execute("select component_type from ComponentsRegistry where id == "+str(lot)).fetchall()]
 			component_types.extend(retry_with_components)
+			if 40 in retry_with_components:
+				if 3 in component_types:
+					component_types.remove(3)
 
 			parsers = OrderedDict()
 			try:
@@ -286,6 +291,8 @@ class CaptureViewer(viewer.Viewer):
 						retry_with_components.append(5)
 					elif self.retry_with_trigger_component.get():
 						retry_with_components.append(69)
+					elif self.retry_with_phantom_component.get():
+						retry_with_components.append(40)
 
 					if retry_with_components:
 						print("retrying with", retry_with_components, packet_name)
