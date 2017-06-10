@@ -4,5 +4,5 @@ Index 1 ($+7DC1F0)
 	[bit] - flag
 		[s64] - driver object id
 	[bit] - flag
-		[u32] - ???
+		[u32] - possessable component id?
 	[bit] - ???

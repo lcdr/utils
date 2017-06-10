@@ -1258,7 +1258,6 @@
 	<message id="1301" name="HandleUGCEquipPreCreateBasedOnEditMode" network="client">
 		<attr name="modelID" type="LWOOBJID"/>
 		<attr name="modelCount" type="int"/>
-		<attr name="bOnCursor" type="bool"/>
 	</message>
 	<message id="1305" name="PropertyContentsFromClient" network="server">
 		<attr default="false" name="queryDB" type="bool"/>

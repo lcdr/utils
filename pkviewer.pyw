@@ -82,7 +82,7 @@ class PKViewer(viewer.Viewer):
 		assert stream.read(c_uint) == 3
 		pack_files = []
 		for _ in range(stream.read(c_uint)):
-			pack_files.append(stream.read(str, char_size=1, length_type=c_uint))
+			pack_files.append(stream.read(bytes, length_type=c_uint).decode("latin1"))
 
 		for _ in range(stream.read(c_uint)):
 			stream.skip_read(20)
