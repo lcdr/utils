@@ -75,9 +75,9 @@ class LUZViewer(viewer.Viewer):
 			number_of_scenes = stream.read(c_ubyte)
 
 		for _ in range(number_of_scenes):
-			filename = stream.read(str, char_size=1, length_type=c_ubyte)
+			filename = stream.read(bytes, length_type=c_ubyte).decode("latin1")
 			scene_id = stream.read(c_uint64)
-			scene_name = stream.read(str, char_size=1, length_type=c_ubyte)
+			scene_name = stream.read(bytes, length_type=c_ubyte).decode("latin1")
 			scene = self.tree.insert(scenes, END, text="Scene", values=(filename, scene_id, scene_name))
 			assert stream.read(bytes, length=3)
 			lvl_path = os.path.join(os.path.dirname(luz_path), filename)
@@ -92,9 +92,9 @@ class LUZViewer(viewer.Viewer):
 		assert stream.read(c_ubyte) == 0
 
 		### terrain
-		filename = stream.read(str, char_size=1, length_type=c_ubyte)
-		name = stream.read(str, char_size=1, length_type=c_ubyte)
-		description = stream.read(str, char_size=1, length_type=c_ubyte)
+		filename = stream.read(bytes, length_type=c_ubyte).decode("latin1")
+		name = stream.read(bytes, length_type=c_ubyte).decode("latin1")
+		description = stream.read(bytes, length_type=c_ubyte).decode("latin1")
 		self.tree.insert(zone, END, text="Terrain", values=(filename, name, description))
 
 		### scene transitions
@@ -102,7 +102,7 @@ class LUZViewer(viewer.Viewer):
 		for _ in range(stream.read(c_uint)):
 			scene_transition_values = ()
 			if version < 40:
-				scene_transition_values += stream.read(str, char_size=1, length_type=c_ubyte),
+				scene_transition_values += stream.read(bytes, length_type=c_ubyte),
 				scene_transition_values += stream.read(c_float),
 			scene_transition = self.tree.insert(scene_transitions, END, text="Scene Transition", values=scene_transition_values)
 			if version < 39:
@@ -241,9 +241,9 @@ class LUZViewer(viewer.Viewer):
 		else:
 			# older lvl file structure
 			stream.skip_read(265)
-			stream.read(str, char_size=1, length_type=c_uint)
+			stream.read(bytes, length_type=c_uint)
 			for _ in range(5):
-				stream.read(str, char_size=1, length_type=c_uint)
+				stream.read(bytes, length_type=c_uint)
 			stream.skip_read(4)
 			for _ in range(stream.read(c_uint)):
 				stream.read(c_float), stream.read(c_float), stream.read(c_float)

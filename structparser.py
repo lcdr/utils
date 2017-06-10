@@ -61,11 +61,11 @@ class StructParser:
 		self._type_handlers["s64"] = lambda stream: stream.read(c_int64)
 		self._type_handlers["u64"] = lambda stream: stream.read(c_uint64)
 		# string types
-		self._type_handlers["u8-string"] = lambda stream: stream.read(str, char_size=1, length_type=c_uint8)
-		self._type_handlers["u16-string"] = lambda stream: stream.read(str, char_size=1, length_type=c_uint16)
+		self._type_handlers["u8-string"] = lambda stream: stream.read(bytes, length_type=c_uint8)
+		self._type_handlers["u16-string"] = lambda stream: stream.read(bytes, length_type=c_uint16)
 
-		self._type_handlers["u8-wstring"] = lambda stream: stream.read(str, char_size=2, length_type=c_uint8)
-		self._type_handlers["u16-wstring"] = lambda stream: stream.read(str, char_size=2, length_type=c_uint16)
+		self._type_handlers["u8-wstring"] = lambda stream: stream.read(str, length_type=c_uint8)
+		self._type_handlers["u16-wstring"] = lambda stream: stream.read(str, length_type=c_uint16)
 		self._type_handlers.update(type_handlers)
 
 	def parse(self, data, variables=None):

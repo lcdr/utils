@@ -1,0 +1,17 @@
+Component 42 - Model
+Index 1:
+[bit] - flag
+	[bit] - ???
+	[s32] - model type
+	[float] - position x
+	[float] - position y
+	[float] - position z
+	[float] - rotation w
+	[float] - rotation x
+	[float] - rotation y
+	[float] - rotation z
+[bit] - flag
+	[u32] - ???
+	[bit] - ???
+	[bit] - flag
+		[u64] - ???

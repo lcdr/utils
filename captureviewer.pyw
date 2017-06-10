@@ -24,7 +24,7 @@ def compressed_ldf_handler(stream):
 	is_compressed = stream.read(c_bool)
 	if is_compressed:
 		uncompressed_size = stream.read(c_uint)
-		uncompressed = zlib.decompress(stream.read(bytes, length=stream.read(c_uint)))
+		uncompressed = zlib.decompress(stream.read(bytes, length_type=c_uint))
 		assert len(uncompressed) == uncompressed_size
 	else:
 		uncompressed = stream.read(bytes, length=size)
@@ -33,9 +33,9 @@ def compressed_ldf_handler(stream):
 type_handlers = {}
 type_handlers["compressed_ldf"] = compressed_ldf_handler
 
-with open("packetdefinitions/replica/creation_header.structs", encoding="utf-8") as file:
+with open(__file__+"/../packetdefinitions/replica/creation_header.structs", encoding="utf-8") as file:
 	creation_header_parser = structparser.StructParser(file.read(), type_handlers)
-with open("packetdefinitions/replica/serialization_header.structs", encoding="utf-8") as file:
+with open(__file__+"/../packetdefinitions/replica/serialization_header.structs", encoding="utf-8") as file:
 	serialization_header_parser = structparser.StructParser(file.read(), type_handlers)
 
 component_name = OrderedDict()
@@ -63,6 +63,7 @@ component_name[6] = "Bouncer",
 component_name[39] = "ScriptedActivity",
 component_name[71] = "RacingControl",
 component_name[75] = "Exhibit",
+component_name[42] = "Model",
 component_name[2] = "Render",
 component_name[107] = "Component 107",
 component_name[69] = "Trigger",
@@ -79,6 +80,8 @@ component_name[64] = None
 component_name[65] = None
 component_name[68] = None
 component_name[73] = None
+component_name[74] = None
+component_name[95] = None
 component_name[104] = None
 component_name[113] = None
 component_name[114] = None
@@ -89,11 +92,11 @@ for comp_id, indices in component_name.items():
 	if indices is not None:
 		comp_parser[comp_id] = []
 		for index in indices:
-			with open("packetdefinitions/replica/components/"+index+".structs") as file:
+			with open(__file__+"/../packetdefinitions/replica/components/"+index+".structs") as file:
 				comp_parser[comp_id].append(structparser.StructParser(file.read(), type_handlers))
 
 norm_parser = {}
-for rootdir, _, files in os.walk("packetdefinitions"):
+for rootdir, _, files in os.walk(__file__+"/../packetdefinitions"):
 	for filename in files:
 		with open(rootdir+"/"+filename) as file:
 			norm_parser[filename[:filename.rindex(".")]] = structparser.StructParser(file.read(), type_handlers)
@@ -495,6 +498,62 @@ class CaptureViewer(viewer.Viewer):
 
 						properties.append(property)
 
+				elif msg_name == "ClientTradeUpdate":
+					attr_values["currency"] = packet.read(c_uint64)
+
+					items = []
+					for _ in range(packet.read(c_uint)):
+						item = {}
+						item["object_id"] = packet.read(c_int64)
+						item_obj_id_again = packet.read(c_int64)
+						assert item["object_id"] == item_obj_id_again
+						item["lot"] = packet.read(c_int)
+						if packet.read(c_bit):
+							item["unknown1"] = packet.read(c_int64)
+						if packet.read(c_bit):
+							item["unknown2"] = packet.read(c_uint)
+						if packet.read(c_bit):
+							item["slot"] = packet.read(c_ushort)
+						if packet.read(c_bit):
+							item["unknown3"] = packet.read(c_uint)
+						if packet.read(c_bit):
+							item["extra_info"] = compressed_ldf_handler(packet)
+						item["unknown4"] = packet.read(c_bit)
+						items.append(item)
+					attr_values["items"] = items
+
+				elif msg_name == "ServerTradeUpdate":
+					attr_values["aboutToPerform"] = packet.read(c_bit)
+					attr_values["currency"] = packet.read(c_uint64)
+
+					items = []
+					for _ in range(packet.read(c_uint)):
+						item = {}
+						item["object_id"] = packet.read(c_int64)
+						item_obj_id_again = packet.read(c_int64)
+						assert item["object_id"] == item_obj_id_again
+						item["lot"] = packet.read(c_int)
+						if packet.read(c_bit):
+							item["unknown1"] = packet.read(c_int64)
+						if packet.read(c_bit):
+							item["amount"] = packet.read(c_uint)
+						if packet.read(c_bit):
+							item["slot"] = packet.read(c_ushort)
+						if packet.read(c_bit):
+							item["unknown2"] = packet.read(c_uint)
+						if packet.read(c_bit):
+							item["extra_info"] = compressed_ldf_handler(packet)
+						item["unknown3"] = packet.read(c_bit)
+						items.append(item)
+					attr_values["items"] = items
+
+				elif msg_name == "PropertyBuildModeUpdate":
+					attr_values["start"] = packet.read(c_bit)
+					attr_values["friends"] = {}
+					for _ in range(packet.read(c_uint)):
+						attr_values["friends"][packet.read(c_int64)] = packet.read(c_bit)
+					attr_values["numSent"] = packet.read(c_int)
+
 				elif msg_name == "ModularBuildFinish":
 					lots = []
 					for _ in range(packet.read(c_ubyte)):
@@ -569,14 +628,11 @@ class CaptureViewer(viewer.Viewer):
 					elif type_ == "float":
 						value = packet.read(c_float)
 					elif type_ == "BinaryBuffer":
-						length = packet.read(c_uint)
-						value = packet.read(bytes, length=length)
+						value = packet.read(bytes, length_type=c_uint)
 					elif type_ == "std::string":
-						length = packet.read(c_uint)
-						value = packet.read(str, char_size=1, allocated_length=length)
+						value = packet.read(bytes, length_type=c_uint)
 					elif type_ == "std::wstring":
-						length = packet.read(c_uint)
-						value = packet.read(str, char_size=2, allocated_length=length*2)
+						value = packet.read(str, length_type=c_uint)
 					elif type_ == "NiPoint3":
 						value = packet.read(c_float), packet.read(c_float), packet.read(c_float)
 					elif type_ == "NiQuaternion":
