@@ -32,7 +32,7 @@ if creation:
 	[float] - rotation z
 	[float] - rotation w
 	[bit] - is on ground
-	[bit] - ???
+	[bit] - is on rail
 	[bit] - flag
 		[float] - velocity x
 		[float] - velocity y

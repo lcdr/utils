@@ -1,6 +1,6 @@
 [bit] - flag
 	[bit] - flag
-		[s64] - parent object id
+		[object_id] - parent object id
 		[bit] - ???
 	[bit] - flag
 		[u16] - count

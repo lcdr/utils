@@ -3,7 +3,7 @@ Index 1 ($+952860):
 [bit] - flag
 	[u32] - # of items equipped, assert > -1 and < 9
 		[s64] - objectID of item
-		[s32] - LOT of item
+		[lot] - LOT of item
 		[bit] - flag
 			[s64] - ???
 		[bit] - flag
