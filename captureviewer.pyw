@@ -1,13 +1,14 @@
 import configparser
 import math
-import os
+import glob
+import os.path
+import pickle
 import pprint
 import struct
 import sqlite3
 import sys
 import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
-import xml.etree.ElementTree as ET
 import zipfile
 import zlib
 from collections import OrderedDict
@@ -119,13 +120,8 @@ class CaptureViewer(viewer.Viewer):
 
 		self.create_parsers()
 
-		gamemsg_xml = ET.parse("packetdefinitions/gamemessages.xml")
-		self.gamemsgs = {}
-		for msg in gamemsg_xml.findall("message"):
-			self.gamemsgs[int(msg.get("id"))] = msg
-		self.gamemsg_global_enums = {}
-		for enum in gamemsg_xml.findall("enum"):
-			self.gamemsg_global_enums[enum.get("name")] = tuple(value.get("name") for value in enum.findall("value"))
+		with open("packetdefinitions/gm", "rb") as file:
+			self.gamemsgs = pickle.loads(zlib.decompress(file.read()))
 
 		self.objects = []
 		self.lot_data = {}
@@ -159,11 +155,9 @@ class CaptureViewer(viewer.Viewer):
 
 
 		self.norm_parser = {}
-		for rootdir, _, files in os.walk(__file__+"/../packetdefinitions"):
-			for filename in files:
-				with open(rootdir+"/"+filename) as file:
-					self.norm_parser[filename[:filename.rindex(".")]] = StructParser(file.read(), type_handlers)
-			break
+		for path in glob.glob(__file__+"/../packetdefinitions/*.structs"):
+			with open(path) as file:
+				self.norm_parser[os.path.splitext(os.path.basename(path))] = StructParser(file.read(), type_handlers)
 
 	def create_widgets(self):
 		super().create_widgets()
@@ -383,127 +377,121 @@ class CaptureViewer(viewer.Viewer):
 
 		tags = []
 		try:
-			message = self.gamemsgs[msg_id]
-			msg_name = message.get("name")
-			network = message.get("network")
-			attr_values = OrderedDict()
-			if network is None or ((("[53-05-00-0c]" in packet_name and "client" not in network) or ("[53-04-00-05]" in packet_name and "server" not in network)) and network != "duplicated"):
+			message = self.gamemsgs["messages"][msg_id]
+			msg_name = message["name"]
+			network = message["network"]
+			param_values = OrderedDict()
+			if network is None or ((("[53-05-00-0c]" in packet_name and "client" not in network) or ("[53-04-00-05]" in packet_name and "server" not in network)) and network != "dup"):
 				raise ValueError
 
-			attrs = message.findall("attr")
-
-			if msg_name == "Teleport":
-				attrs = [attr for attr in attrs if attr.get("name") != "NoGravTeleport"]
-
-			attrs.sort(key=lambda x: x.get("name"))
-
-			if message.get("custom") is not None:
+			params = message["params"]
+			if "custom" in message:
 				# Custom serializations
 				if msg_name == "NotifyMissionTask":
-					attr_values["missionID"] = packet.read(c_int)
-					attr_values["taskMask"] = packet.read(c_int)
+					param_values["missionID"] = packet.read(c_int)
+					param_values["taskMask"] = packet.read(c_int)
 					updates = []
 					for _ in range(packet.read(c_ubyte)):
 						updates.append(packet.read(c_float))
 					if len(updates) != 1:
 						tags.append("unexpected")
-					attr_values["updates"] = updates
+					param_values["updates"] = updates
 				elif msg_name == "VendorStatusUpdate":
-					attr_values["bUpdateOnly"] = packet.read(c_bit)
+					param_values["bUpdateOnly"] = packet.read(c_bit)
 					inv = {}
 					for _ in range(packet.read(c_uint)):
 						inv[packet.read(c_int)] = packet.read(c_int)
-					attr_values["inventoryList"] = inv
+					param_values["inventoryList"] = inv
 				elif msg_name == "RequestLinkedMission":
-					attr_values["playerID"] = packet.read(c_int64)
-					attr_values["missionID"] = packet.read(c_int)
-					attr_values["bMissionOffered"] = packet.read(c_bit)
+					param_values["playerID"] = packet.read(c_int64)
+					param_values["missionID"] = packet.read(c_int)
+					param_values["bMissionOffered"] = packet.read(c_bit)
 				elif msg_name == "FetchModelMetadataResponse":
-					attr_values["ugID"] = packet.read(c_int64)
-					attr_values["objectID"] = packet.read(c_int64)
-					attr_values["requestorID"] = packet.read(c_int64)
-					attr_values["context"] = packet.read(c_int)
-					attr_values["bHasUGData"] = packet.read(c_bit)
-					attr_values["bHasBPData"] = packet.read(c_bit)
-					if attr_values["bHasUGData"]:
-						attr_values["UGM_unknown1"] = packet.read(c_int64)
-						attr_values["UGM_unknown2"] = packet.read(c_int64)
-						attr_values["UGM_unknown_str_1"] = packet.read(str, length_type=c_uint)
-						attr_values["UGM_unknown_str_2"] = packet.read(str, length_type=c_uint)
-						attr_values["UGM_unknown3"] = packet.read(c_int64)
-						attr_values["UGM_unknown4"] = packet.read(c_int64)
-						attr_values["UGM_unknown_str_3"] = packet.read(str, length_type=c_uint)
+					param_values["ugID"] = packet.read(c_int64)
+					param_values["objectID"] = packet.read(c_int64)
+					param_values["requestorID"] = packet.read(c_int64)
+					param_values["context"] = packet.read(c_int)
+					param_values["bHasUGData"] = packet.read(c_bit)
+					param_values["bHasBPData"] = packet.read(c_bit)
+					if param_values["bHasUGData"]:
+						param_values["UGM_unknown1"] = packet.read(c_int64)
+						param_values["UGM_unknown2"] = packet.read(c_int64)
+						param_values["UGM_unknown_str_1"] = packet.read(str, length_type=c_uint)
+						param_values["UGM_unknown_str_2"] = packet.read(str, length_type=c_uint)
+						param_values["UGM_unknown3"] = packet.read(c_int64)
+						param_values["UGM_unknown4"] = packet.read(c_int64)
+						param_values["UGM_unknown_str_3"] = packet.read(str, length_type=c_uint)
 						unknown_list = []
 						for _ in range(packet.read(c_ubyte)):
 							unknown_list.append(packet.read(c_int64))
-						attr_values["UGM_unknown_list"] = unknown_list
+						param_values["UGM_unknown_list"] = unknown_list
 
-					if attr_values["bHasBPData"]:
-						attr_values["BPM_unknown1"] = packet.read(c_int64)
-						attr_values["BPM_some_timestamp"] = packet.read(c_uint64)
-						attr_values["BPM_unknown2"] = packet.read(c_uint)
-						attr_values["BPM_unknown3"] = packet.read(c_float), packet.read(c_float), packet.read(c_float)
-						attr_values["BPM_unknown4"] = packet.read(c_float), packet.read(c_float), packet.read(c_float)
-						attr_values["BPM_unknown_bool_1"] = packet.read(c_bit)
-						attr_values["BPM_unknown_bool_2"] = packet.read(c_bit)
-						attr_values["BPM_unknown_str_1"] = packet.read(str, length_type=c_uint)
-						attr_values["BPM_unknown_bool_3"] = packet.read(c_bit)
-						attr_values["BPM_unknown5"] = packet.read(c_uint)
+					if param_values["bHasBPData"]:
+						param_values["BPM_unknown1"] = packet.read(c_int64)
+						param_values["BPM_some_timestamp"] = packet.read(c_uint64)
+						param_values["BPM_unknown2"] = packet.read(c_uint)
+						param_values["BPM_unknown3"] = packet.read(c_float), packet.read(c_float), packet.read(c_float)
+						param_values["BPM_unknown4"] = packet.read(c_float), packet.read(c_float), packet.read(c_float)
+						param_values["BPM_unknown_bool_1"] = packet.read(c_bit)
+						param_values["BPM_unknown_bool_2"] = packet.read(c_bit)
+						param_values["BPM_unknown_str_1"] = packet.read(str, length_type=c_uint)
+						param_values["BPM_unknown_bool_3"] = packet.read(c_bit)
+						param_values["BPM_unknown5"] = packet.read(c_uint)
 
 				elif msg_name == "NotifyPetTamingPuzzleSelected":
 					bricks = []
 					for _ in range(packet.read(c_uint)):
 						bricks.append((packet.read(c_uint), packet.read(c_uint)))
-					attr_values["randBrickIDList"] = bricks
+					param_values["randBrickIDList"] = bricks
 				elif msg_name == "DownloadPropertyData":
-					attr_values["object_id"] = packet.read(c_int64)
-					attr_values["component_id"] = packet.read(c_int)
-					attr_values["mapID"] = packet.read(c_ushort)
-					attr_values["vendorMapID"] = packet.read(c_ushort)
-					attr_values["unknown1"] = packet.read(c_uint)
-					attr_values["property_name"] = packet.read(str, length_type=c_uint)
-					attr_values["property_description"] = packet.read(str, length_type=c_uint)
-					attr_values["owner_name"] = packet.read(str, length_type=c_uint)
-					attr_values["owner_object_id"] = packet.read(c_int64)
-					attr_values["type"] = packet.read(c_uint)
-					attr_values["sizecode"] = packet.read(c_uint)
-					attr_values["minimumPrice"] = packet.read(c_uint)
-					attr_values["rentDuration"] = packet.read(c_uint)
-					attr_values["timestamp1"] = packet.read(c_uint64)
-					attr_values["unknown2"] = packet.read(c_uint)
-					attr_values["unknown3"] = packet.read(c_uint64)
-					attr_values["spawnName"] = packet.read(str, length_type=c_uint)
-					attr_values["unknown_str_1"] = packet.read(str, length_type=c_uint)
-					attr_values["unknown_str_2"] = packet.read(str, length_type=c_uint)
-					attr_values["durationType"] = packet.read(c_uint)
-					attr_values["unknown4"] = packet.read(c_uint)
-					attr_values["unknown5"] = packet.read(c_uint)
-					attr_values["unknown6"] = packet.read(c_ubyte)
-					attr_values["unknown7"] = packet.read(c_uint64)
-					attr_values["unknown8"] = packet.read(c_uint)
-					attr_values["unknown_str_3"] = packet.read(str, length_type=c_uint)
-					attr_values["unknown9"] = packet.read(c_uint64)
-					attr_values["unknown10"] = packet.read(c_uint)
-					attr_values["unknown11"] = packet.read(c_uint)
-					attr_values["zoneX"] = packet.read(c_float)
-					attr_values["zoneY"] = packet.read(c_float)
-					attr_values["zoneZ"] = packet.read(c_float)
-					attr_values["maxBuildHeight"] = packet.read(c_float)
-					attr_values["timestamp2"] = packet.read(c_uint64)
-					attr_values["unknown12"] = packet.read(c_ubyte)
+					param_values["object_id"] = packet.read(c_int64)
+					param_values["component_id"] = packet.read(c_int)
+					param_values["mapID"] = packet.read(c_ushort)
+					param_values["vendorMapID"] = packet.read(c_ushort)
+					param_values["unknown1"] = packet.read(c_uint)
+					param_values["property_name"] = packet.read(str, length_type=c_uint)
+					param_values["property_description"] = packet.read(str, length_type=c_uint)
+					param_values["owner_name"] = packet.read(str, length_type=c_uint)
+					param_values["owner_object_id"] = packet.read(c_int64)
+					param_values["type"] = packet.read(c_uint)
+					param_values["sizecode"] = packet.read(c_uint)
+					param_values["minimumPrice"] = packet.read(c_uint)
+					param_values["rentDuration"] = packet.read(c_uint)
+					param_values["timestamp1"] = packet.read(c_uint64)
+					param_values["unknown2"] = packet.read(c_uint)
+					param_values["unknown3"] = packet.read(c_uint64)
+					param_values["spawnName"] = packet.read(str, length_type=c_uint)
+					param_values["unknown_str_1"] = packet.read(str, length_type=c_uint)
+					param_values["unknown_str_2"] = packet.read(str, length_type=c_uint)
+					param_values["durationType"] = packet.read(c_uint)
+					param_values["unknown4"] = packet.read(c_uint)
+					param_values["unknown5"] = packet.read(c_uint)
+					param_values["unknown6"] = packet.read(c_ubyte)
+					param_values["unknown7"] = packet.read(c_uint64)
+					param_values["unknown8"] = packet.read(c_uint)
+					param_values["unknown_str_3"] = packet.read(str, length_type=c_uint)
+					param_values["unknown9"] = packet.read(c_uint64)
+					param_values["unknown10"] = packet.read(c_uint)
+					param_values["unknown11"] = packet.read(c_uint)
+					param_values["zoneX"] = packet.read(c_float)
+					param_values["zoneY"] = packet.read(c_float)
+					param_values["zoneZ"] = packet.read(c_float)
+					param_values["maxBuildHeight"] = packet.read(c_float)
+					param_values["timestamp2"] = packet.read(c_uint64)
+					param_values["unknown12"] = packet.read(c_ubyte)
 					path = []
 					for _ in range(packet.read(c_uint)):
 						path.append((packet.read(c_float), packet.read(c_float), packet.read(c_float)))
-					attr_values["path"] = path
+					param_values["path"] = path
 
 				elif msg_name == "PropertySelectQuery":
-					attr_values["navOffset"] = packet.read(c_int)
-					attr_values["bThereAreMore"] = packet.read(c_bit)
-					attr_values["myCloneID"] = packet.read(c_int)
-					attr_values["bHasFeaturedProperty"] = packet.read(c_bit)
-					attr_values["bWasFriends"] = packet.read(c_bit)
+					param_values["navOffset"] = packet.read(c_int)
+					param_values["bThereAreMore"] = packet.read(c_bit)
+					param_values["myCloneID"] = packet.read(c_int)
+					param_values["bHasFeaturedProperty"] = packet.read(c_bit)
+					param_values["bWasFriends"] = packet.read(c_bit)
 					properties = []
-					attr_values["properties"] = properties
+					param_values["properties"] = properties
 					for _ in range(packet.read(c_uint)):
 						property = OrderedDict()
 						property["cloneID"] = packet.read(c_int)
@@ -523,7 +511,7 @@ class CaptureViewer(viewer.Viewer):
 						properties.append(property)
 
 				elif msg_name == "ClientTradeUpdate":
-					attr_values["currency"] = packet.read(c_uint64)
+					param_values["currency"] = packet.read(c_uint64)
 
 					items = []
 					for _ in range(packet.read(c_uint)):
@@ -544,11 +532,11 @@ class CaptureViewer(viewer.Viewer):
 							item["extra_info"] = self.compressed_ldf_handler(packet)
 						item["unknown4"] = packet.read(c_bit)
 						items.append(item)
-					attr_values["items"] = items
+					param_values["items"] = items
 
 				elif msg_name == "ServerTradeUpdate":
-					attr_values["aboutToPerform"] = packet.read(c_bit)
-					attr_values["currency"] = packet.read(c_uint64)
+					param_values["aboutToPerform"] = packet.read(c_bit)
+					param_values["currency"] = packet.read(c_uint64)
 
 					items = []
 					for _ in range(packet.read(c_uint)):
@@ -569,76 +557,69 @@ class CaptureViewer(viewer.Viewer):
 							item["extra_info"] = self.compressed_ldf_handler(packet)
 						item["unknown3"] = packet.read(c_bit)
 						items.append(item)
-					attr_values["items"] = items
+					param_values["items"] = items
 
 				elif msg_name == "PropertyBuildModeUpdate":
-					attr_values["start"] = packet.read(c_bit)
-					attr_values["friends"] = {}
+					param_values["start"] = packet.read(c_bit)
+					param_values["friends"] = {}
 					for _ in range(packet.read(c_uint)):
-						attr_values["friends"][packet.read(c_int64)] = packet.read(c_bit)
-					attr_values["numSent"] = packet.read(c_int)
+						param_values["friends"][packet.read(c_int64)] = packet.read(c_bit)
+					param_values["numSent"] = packet.read(c_int)
 
 				elif msg_name == "ModularBuildFinish":
 					lots = []
 					for _ in range(packet.read(c_ubyte)):
 						lots.append(packet.read(c_int))
-					attr_values["moduleTemplateIDs"] = lots
+					param_values["moduleTemplateIDs"] = lots
 				elif msg_name == "PetTamingTryBuild":
 					selections = []
 					for _ in range(packet.read(c_uint)):
 						selections.append((packet.read(c_uint), packet.read(c_uint)))
-					attr_values["currentSelections"] = selections
-					attr_values["clientFailed"] = packet.read(c_bit)
+					param_values["currentSelections"] = selections
+					param_values["clientFailed"] = packet.read(c_bit)
 				elif msg_name == "GetModelsOnProperty":
 					models = []
 					for _ in range(packet.read(c_uint)):
 						models.append((packet.read(c_int64), packet.read(c_int64)))
-					attr_values["models"] = models
+					param_values["models"] = models
 				elif msg_name == "MatchRequest":
-					attr_values["activator"] = packet.read(c_int64)
+					param_values["activator"] = packet.read(c_int64)
 					choices = packet.read(str, length_type=c_uint)
 					if choices:
 						assert packet.read(c_ushort) == 0 # for some reason has a null terminator
-					attr_values["playerChoices"] = choices
-					attr_values["type"] = packet.read(c_int)
-					attr_values["value"] = packet.read(c_int)
+					param_values["playerChoices"] = choices
+					param_values["type"] = packet.read(c_int)
+					param_values["value"] = packet.read(c_int)
 				elif msg_name == "TeamCreateLocal":
 					team_members = []
 					for _ in range(packet.read(c_uint)):
 						team_members.append((packet.read(c_int64), packet.read(c_bit)))
-					attr_values["team_members"] = team_members
+					param_values["team_members"] = team_members
 				else:
 					raise NotImplementedError("Custom serialization")
-				values = "\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()])
+				values = "\n".join(["%s = %s" % (a, b) for a, b in param_values.items()])
 			else:
-				local_enums = {}
-				for enum in message.findall("enum"):
-					local_enums[enum.get("name")] = tuple(value.get("name") for value in enum.findall("value"))
-
-				for attr in attrs:
-					if attr.get("returnValue") is not None:
-						continue
-					type_ = attr.get("type")
-					default = attr.get("default")
+				for param in params:
+					type_ = param["type"]
 					if type_ == "bool": # bools don't have default-flags
-						attr_values[attr.get("name")] = packet.read(c_bit)
+						param_values[param["name"]] = packet.read(c_bit)
 						continue
-					if default is not None:
+					if "default" in param:
 						is_not_default = packet.read(c_bit)
 						if not is_not_default:
-							attr_values[attr.get("name")] = default
+							param_values[param["name"]] = param["default"]
 							continue
 					if type_ == "unsigned char":
 						value = packet.read(c_ubyte)
-					elif type_ == "LWOMAPID":
+					elif type_ == "mapid":
 						value = packet.read(c_ushort)
 					elif type_ in ("int", "LOT"):
 						value = packet.read(c_int)
-					elif type_ in ("unsigned int", "LWOCLONEID", "TSkillID"):
+					elif type_ in ("unsigned int", "cloneid", "TSkillID"):
 						value = packet.read(c_uint)
 					elif type_ == "__int64":
 						value = packet.read(c_int64)
-					elif type_ == "LWOOBJID":
+					elif type_ == "objectid":
 						value = packet.read(c_int64)
 						if value == object_id:
 							value = str(value)+" <self>"
@@ -647,48 +628,48 @@ class CaptureViewer(viewer.Viewer):
 								if value == obj.object_id:
 									value = str(value)+" <"+self.tree.item(obj.entry, "values")[0]+">"
 									break
-					elif type_ == "LWOZONEID":
+					elif type_ == "zoneid":
 						value = packet.read(c_ushort), packet.read(c_ushort), packet.read(c_uint)
 					elif type_ == "float":
 						value = packet.read(c_float)
 					elif type_ == "BinaryBuffer":
 						value = packet.read(bytes, length_type=c_uint)
-					elif type_ == "std::string":
+					elif type_ == "str":
 						value = packet.read(bytes, length_type=c_uint)
-					elif type_ == "std::wstring":
+					elif type_ == "wstr":
 						value = packet.read(str, length_type=c_uint)
-					elif type_ == "NiPoint3":
+					elif type_ == "Vector3":
 						value = packet.read(c_float), packet.read(c_float), packet.read(c_float)
-					elif type_ == "NiQuaternion":
+					elif type_ == "Quaternion":
 						value = packet.read(c_float), packet.read(c_float), packet.read(c_float), packet.read(c_float)
-					elif type_ == "LwoNameValue":
+					elif type_ == "LDF":
 						value = packet.read(str, length_type=c_uint)
 						if value:
 							assert packet.read(c_ushort) == 0 # for some reason has a null terminator
-					elif type_ == "NDGFxValue":
+					elif type_ == "AMF3":
 						value = amf3.read(packet)
-					elif type_ in local_enums:
+					elif "enums" in message and type_ in message["enums"]:
 						value = packet.read(c_uint)
-						value = local_enums[type_][value]+" ("+str(value)+")"
-					elif type_ in self.gamemsg_global_enums:
+						value = message["enums"][type_][value]+" ("+str(value)+")"
+					elif type_ in self.gamemsgs["enums"]:
 						value = packet.read(c_uint)
-						value = self.gamemsg_global_enums[type_][value]+" ("+str(value)+")"
+						value = self.gamemsgs["enums"][type_][value]+" ("+str(value)+")"
 					else:
 						raise NotImplementedError("Unknown type", type_)
-					attr_values[attr.get("name")] = value
+					param_values[param["name"]] = value
 			if not packet.all_read():
 				raise ValueError
 		except NotImplementedError as e:
-			values = (msg_name, str(e)+"\nlen: "+str(len(packet)-10)+"\n"+"\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()]))
+			values = (msg_name, str(e)+"\nlen: "+str(len(packet)-10)+"\n"+"\n".join(["%s = %s" % (a, b) for a, b in param_values.items()]))
 			tags.append("error")
 		except Exception as e:
 			print(packet_name, msg_name)
 			import traceback
 			traceback.print_exc()
-			values = ("likely not "+msg_name, "Error while parsing, likely not this message!\n"+str(e)+"\nlen: "+str(len(packet)-10)+"\n"+"\n".join(["%s = %s" % (a, b) for a, b in attr_values.items()]))
+			values = ("likely not "+msg_name, "Error while parsing, likely not this message!\n"+str(e)+"\nlen: "+str(len(packet)-10)+"\n"+"\n".join(["%s = %s" % (a, b) for a, b in param_values.items()]))
 			tags.append("error")
 		else:
-			values = (msg_name, "\n".join(["%s = %s" % (a, pprint.pformat(b)) for a, b in attr_values.items()]))
+			values = (msg_name, "\n".join(["%s = %s" % (a, pprint.pformat(b)) for a, b in param_values.items()]))
 		self.tree.insert(entry, END, text=packet_name, values=values, tags=tags)
 
 	def parse_normal_packet(self, packet_name, packet):
