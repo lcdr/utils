@@ -1,5 +1,7 @@
 import hashlib
 import os
+import subprocess
+import sys
 import tempfile
 
 import tkinter.filedialog as filedialog
@@ -144,7 +146,12 @@ class PKViewer(viewer.Viewer):
 			tempfile_path = os.path.join(tempfile.gettempdir(), os.path.basename(path))
 			with open(tempfile_path, "wb") as file:
 				file.write(data)
-			os.startfile(tempfile_path)
+
+			if sys.platform == "win32":
+				os.startfile(tempfile_path)
+			else:
+				opener = "open" if sys.platform == "darwin" else "xdg-open"
+				subprocess.call([opener, tempfile_path])
 
 if __name__ == "__main__":
 	app = PKViewer()
