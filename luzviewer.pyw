@@ -239,16 +239,51 @@ class LUZViewer(viewer.Viewer):
 					pass
 				stream._read_offset = (start_pos + chunk_length) * 8 # go to the next CHNK
 		else:
-			# older lvl file structure
-			stream.skip_read(265)
-			stream.read(bytes, length_type=c_uint)
-			for _ in range(5):
-				stream.read(bytes, length_type=c_uint)
-			stream.skip_read(4)
-			for _ in range(stream.read(c_uint)):
-				stream.read(c_float), stream.read(c_float), stream.read(c_float)
-
+			self.parse_old_lvl_header(stream)
 			self.lvl_parse_chunk_type_2001(stream, scene)
+
+	def parse_old_lvl_header(self, stream):
+		version = stream.read(c_ushort)
+		assert stream.read(c_ushort) == version
+		stream.read(c_ubyte)
+		stream.read(c_uint)
+		if version >= 45:
+			stream.read(c_float)
+		for _ in range(4*3):
+			stream.read(c_float)
+		if version >= 31:
+			if version >= 39:
+				for _ in range(12):
+					stream.read(c_float)
+				if version >= 40:
+					for _ in range(stream.read(c_uint)):
+						stream.read(c_uint)
+						stream.read(c_float)
+						stream.read(c_float)
+			else:
+				stream.read(c_float)
+				stream.read(c_float)
+
+			for _ in range(3):
+				stream.read(c_float)
+
+		if version >= 36:
+			for _ in range(3):
+				stream.read(c_float)
+
+		if version < 42:
+			for _ in range(3):
+				stream.read(c_float)
+			if version >= 33:
+				for _ in range(4):
+					stream.read(c_float)
+
+		stream.read(bytes, length_type=c_uint)
+		for _ in range(5):
+			stream.read(bytes, length_type=c_uint)
+		stream.skip_read(4)
+		for _ in range(stream.read(c_uint)):
+			stream.read(c_float), stream.read(c_float), stream.read(c_float)
 
 	def lvl_parse_chunk_type_2001(self, stream, scene):
 		for _ in range(stream.read(c_uint)):
