@@ -5,7 +5,7 @@ import argparse
 import re
 from collections import namedtuple
 
-from pyraknet.bitstream import BitStream, c_bit, c_float, c_double, c_int8, c_uint8, c_int16, c_uint16, c_int32, c_uint32, c_int64, c_uint64
+from pyraknet.bitstream import c_bit, c_float, c_double, c_int8, c_uint8, c_int16, c_uint16, c_int32, c_uint32, c_int64, c_uint64, ReadStream
 
 VAR_CHARS = r"[^ \t\[\]]+"
 
@@ -88,10 +88,10 @@ class StructParser:
 		if variables is None:
 			variables = {}
 		self._variables = variables
-		if isinstance(data, BitStream):
+		if isinstance(data, ReadStream):
 			stream = data
 		else:
-			stream = BitStream(data)
+			stream = ReadStream(data)
 		yield from self._parse_struct_occurrences(stream, self.defs)
 
 	def _to_tree(self, def_iter, stack_level=0, start_def=None):

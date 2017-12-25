@@ -1,8 +1,8 @@
-from pyraknet.bitstream import BitStream, c_bool, c_float, c_int, c_int64, c_ubyte, c_uint
+from pyraknet.bitstream import c_bool, c_float, c_int, c_int64, c_ubyte, c_uint, ReadStream
 
 def from_ldf(ldf):
 	ldf_dict = {}
-	if isinstance(ldf, BitStream):
+	if isinstance(ldf, ReadStream):
 		for _ in range(ldf.read(c_uint)):
 			encoded_key = ldf.read(bytes, length=ldf.read(c_ubyte))
 			key = encoded_key.decode("utf-16-le")
