@@ -9,7 +9,7 @@ import tkinter.messagebox as messagebox
 from tkinter import END, Menu
 
 import viewer
-from pyraknet.bitstream import BitStream, c_bool, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort
+from pyraknet.bitstream import c_bool, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort, ReadStream
 
 class PathType(enum.IntEnum):
 	Movement = 0
@@ -53,7 +53,7 @@ class LUZViewer(viewer.Viewer):
 		self.tree.set_children("")
 		print("Loading", luz_path)
 		with open(luz_path, "rb") as file:
-			stream = BitStream(file.read())
+			stream = ReadStream(file.read())
 
 		version = stream.read(c_uint)
 		assert version in (36, 38, 39, 40, 41), version
@@ -85,7 +85,7 @@ class LUZViewer(viewer.Viewer):
 				with open(lvl_path, "rb") as lvl:
 					print("Loading lvl", filename)
 					try:
-						self.parse_lvl(BitStream(lvl.read()), scene)
+						self.parse_lvl(ReadStream(lvl.read()), scene)
 					except Exception:
 						import traceback
 						traceback.print_exc()
@@ -115,7 +115,7 @@ class LUZViewer(viewer.Viewer):
 				self.tree.insert(scene_transition, END, text="Transition Point", values=(transition_point_scene_id, transition_point_position))
 
 		remaining_length = stream.read(c_uint)
-		assert len(stream) - stream._read_offset//8 == remaining_length
+		assert len(stream) - stream.read_offset//8 == remaining_length
 		assert stream.read(c_uint) == 1
 
 		### paths
@@ -231,16 +231,16 @@ class LUZViewer(viewer.Viewer):
 			# newer lvl file structure
 			# chunk based
 			while not stream.all_read():
-				assert stream._read_offset//8 % 16 == 0 # seems everything is aligned like this?
-				start_pos = stream._read_offset//8
+				assert stream.read_offset//8 % 16 == 0 # seems everything is aligned like this?
+				start_pos = stream.read_offset//8
 				assert stream.read(bytes, length=4) == b"CHNK"
 				chunk_type = stream.read(c_uint)
 				assert stream.read(c_ushort) == 1
 				assert stream.read(c_ushort) in (1, 2)
 				chunk_length = stream.read(c_uint)
 				data_pos = stream.read(c_uint)
-				stream._read_offset = data_pos * 8
-				assert stream._read_offset//8 % 16 == 0
+				stream.read_offset = data_pos * 8
+				assert stream.read_offset//8 % 16 == 0
 				if chunk_type == 1000:
 					pass
 				elif chunk_type == 2000:
@@ -249,7 +249,7 @@ class LUZViewer(viewer.Viewer):
 					self.lvl_parse_chunk_type_2001(stream, scene)
 				elif chunk_type == 2002:
 					pass
-				stream._read_offset = (start_pos + chunk_length) * 8 # go to the next CHNK
+				stream.read_offset = (start_pos + chunk_length) * 8 # go to the next CHNK
 		else:
 			self.parse_old_lvl_header(stream)
 			self.lvl_parse_chunk_type_2001(stream, scene)

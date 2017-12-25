@@ -10,7 +10,7 @@ from tkinter.ttk import Entry, Scrollbar, Treeview
 
 import decompress_sd0
 import viewer
-from pyraknet.bitstream import BitStream, c_bool, c_int, c_ubyte, c_uint
+from pyraknet.bitstream import c_bool, c_int, c_ubyte, c_uint, ReadStream
 
 class PKViewer(viewer.Viewer):
 	def __init__(self):
@@ -79,7 +79,7 @@ class PKViewer(viewer.Viewer):
 	def load_pki(self, path):
 		# unused, alternate way to get the list of pks
 		with open(path, "rb") as file:
-			stream = BitStream(file.read())
+			stream = ReadStream(file.read())
 
 		assert stream.read(c_uint) == 3
 		pack_files = []
@@ -101,7 +101,7 @@ class PKViewer(viewer.Viewer):
 			if unknown != 0:
 				print(unknown, path)
 			file.seek(number_of_records_address)
-			data = BitStream(file.read()[:-8])
+			data = ReadStream(file.read()[:-8])
 
 		number_of_records = data.read(c_uint)
 		for _ in range(number_of_records):

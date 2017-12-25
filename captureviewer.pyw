@@ -18,7 +18,7 @@ import amf3
 import viewer
 import ldf
 from structparser import StructParser
-from pyraknet.bitstream import BitStream, c_bit, c_bool, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort
+from pyraknet.bitstream import c_bit, c_bool, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort, ReadStream
 
 component_name = OrderedDict()
 component_name[108] = "Component 108",
@@ -202,28 +202,28 @@ class CaptureViewer(viewer.Viewer):
 					print("Parsing creations")
 					creations = [i for i in files if "[24]" in i]
 					for packet_name in creations:
-						packet = BitStream(capture.read(packet_name))
+						packet = ReadStream(capture.read(packet_name))
 						self.parse_creation(packet_name, packet)
 
 				if self.parse_serializations.get():
 					print("Parsing serializations")
 					serializations = [i for i in files if "[27]" in i]
 					for packet_name in serializations:
-						packet = BitStream(capture.read(packet_name)[1:])
+						packet = ReadStream(capture.read(packet_name)[1:])
 						self.parse_serialization_packet(packet_name, packet)
 
 				if self.parse_game_messages.get():
 					print("Parsing game messages")
 					game_messages = [i for i in files if "[53-05-00-0c]" in i or "[53-04-00-05]" in i]
 					for packet_name in game_messages:
-						packet = BitStream(capture.read(packet_name)[8:])
+						packet = ReadStream(capture.read(packet_name)[8:])
 						self.parse_game_message(packet_name, packet)
 
 				if self.parse_normal_packets.get():
 					print("Parsing normal packets")
 					packets = [i for i in files if "[24]" not in i and "[27]" not in i and "[53-05-00-0c]" not in i and "[53-04-00-05]" not in i]
 					for packet_name in packets:
-						packet = BitStream(capture.read(packet_name))
+						packet = ReadStream(capture.read(packet_name))
 						self.parse_normal_packet(packet_name, packet)
 
 	def object_id_handler(self, stream):
@@ -254,7 +254,7 @@ class CaptureViewer(viewer.Viewer):
 			assert len(uncompressed) == uncompressed_size
 		else:
 			uncompressed = stream.read(bytes, length=size)
-		return ldf.from_ldf(BitStream(uncompressed))
+		return ldf.from_ldf(ReadStream(uncompressed))
 
 	def parse_creation(self, packet_name, packet, retry_with_components=[]):
 		packet.skip_read(1)
@@ -294,7 +294,7 @@ class CaptureViewer(viewer.Viewer):
 		else:
 			lot_name, parsers, error = self.lot_data[lot]
 		id_ = packet.read(str, length_type=c_ubyte) + " " + lot_name
-		packet._read_offset = 0
+		packet.read_offset = 0
 		parser_output = ParserOutput()
 		with parser_output:
 			parser_output.append(self.creation_header_parser.parse(packet))
@@ -319,7 +319,7 @@ class CaptureViewer(viewer.Viewer):
 					if retry_with_components:
 						print("retrying with", retry_with_components, packet_name)
 						del self.lot_data[lot]
-						packet._read_offset = 0
+						packet.read_offset = 0
 						self.parse_creation(packet_name, packet, retry_with_components)
 						return
 
@@ -333,7 +333,7 @@ class CaptureViewer(viewer.Viewer):
 			parser_output.text += "\n"+name+"\n\n"
 			parser_output.append(parser.parse(packet, {"creation":is_creation}))
 		if not packet.all_read():
-			raise IndexError("Not completely read, %i bytes unread" % (len(packet) - math.ceil(packet._read_offset / 8)))
+			raise IndexError("Not completely read, %i bytes unread" % (len(packet) - math.ceil(packet.read_offset / 8)))
 
 	def parse_serialization_packet(self, packet_name, packet):
 		network_id = packet.read(c_ushort)
