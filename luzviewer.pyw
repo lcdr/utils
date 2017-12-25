@@ -9,10 +9,10 @@ import tkinter.messagebox as messagebox
 from tkinter import END, Menu
 
 import viewer
-from pyraknet.bitstream import BitStream, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort
+from pyraknet.bitstream import BitStream, c_bool, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort
 
 class PathType(enum.IntEnum):
-	Movement  = 0
+	Movement = 0
 	MovingPlatform = 1
 	Property = 2
 	Camera = 3
@@ -137,17 +137,24 @@ class LUZViewer(viewer.Viewer):
 					values += unknown_str,
 
 			elif path_type == PathType.Property:
-				unknown3 = stream.read(c_int), stream.read(c_int), stream.read(c_int), stream.read(c_uint64)
-				unknown_str1 = stream.read(str, length_type=c_ubyte)
-				unknown_str2 = stream.read(str, length_type=c_uint)
-				unknown4 = stream.read(c_int), stream.read(c_int), stream.read(c_float)
-				unknown5 = stream.read(c_int), stream.read(c_int)
-				unknown6 = stream.read(c_float), stream.read(c_float), stream.read(c_float), stream.read(c_float)
-				values += unknown3, unknown_str1, unknown_str2, unknown4, unknown5, unknown6
+				unknown3 = stream.read(c_int)
+				price = stream.read(c_int)
+				rental_time = stream.read(c_int)
+				associated_zone = stream.read(c_uint64)
+				display_name = stream.read(str, length_type=c_ubyte)
+				display_desc = stream.read(str, length_type=c_uint)
+				unknown4 = stream.read(c_int),
+				clone_limit = stream.read(c_int)
+				reputation_multiplier = stream.read(c_float)
+				time_unit = stream.read(c_int),
+				achievement_required = stream.read(c_int)
+				player_zone_coords = stream.read(c_float), stream.read(c_float), stream.read(c_float)
+				max_build_height = stream.read(c_float)
+				values += unknown3, price, rental_time, associated_zone, display_name, display_desc, unknown4, clone_limit, reputation_multiplier, time_unit, achievement_required, player_zone_coords, max_build_height
 
 			elif path_type == PathType.Camera:
-				unknown_str = stream.read(str, length_type=c_ubyte)
-				values += unknown_str,
+				next_path = stream.read(str, length_type=c_ubyte)
+				values += next_path,
 				if path_version >= 14:
 					unknown3 = stream.read(c_ubyte)
 					values += unknown3,
@@ -159,10 +166,12 @@ class LUZViewer(viewer.Viewer):
 					lot_name += " - "+self.db.execute("select name from Objects where id == "+str(spawn_lot)).fetchone()[0]
 				except TypeError:
 					print("Name for lot", spawn_lot, "not found")
-				unknown3 = stream.read(c_uint), stream.read(c_int), stream.read(c_uint)
+				respawn_time = stream.read(c_uint)
+				max_to_spawn = stream.read(c_int)
+				num_to_maintain = stream.read(c_uint)
 				object_id = stream.read(c_int64)
-				unknown4 = stream.read(c_ubyte)
-				values += lot_name, unknown3, object_id, unknown4
+				activate_on_load = stream.read(c_bool)
+				values += lot_name, respawn_time, max_to_spawn, num_to_maintain, object_id, activate_on_load
 
 			path = self.tree.insert(paths, END, text=PathType(path_type).name, values=values)
 
@@ -174,8 +183,9 @@ class LUZViewer(viewer.Viewer):
 				if path_type == PathType.MovingPlatform:
 					rotation = stream.read(c_float), stream.read(c_float), stream.read(c_float), stream.read(c_float)
 					waypoint_unknown2 = stream.read(c_ubyte)
-					waypoint_unknown3 = stream.read(c_float), stream.read(c_float)
-					waypoint_values += rotation, waypoint_unknown2, waypoint_unknown3
+					speed = stream.read(c_float)
+					wait = stream.read(c_float)
+					waypoint_values += rotation, waypoint_unknown2, speed, wait
 
 					if path_version >= 13:
 						waypoint_audio_guid_1 = stream.read(str, length_type=c_ubyte)
@@ -183,11 +193,13 @@ class LUZViewer(viewer.Viewer):
 						waypoint_values += waypoint_audio_guid_1, waypoint_audio_guid_2
 
 				elif path_type == PathType.Camera:
-					waypoint_unknown1 = (
-					stream.read(c_float), stream.read(c_float), stream.read(c_float),
-					stream.read(c_float), stream.read(c_float), stream.read(c_float),
-					stream.read(c_float), stream.read(c_float), stream.read(c_float))
-					waypoint_values += waypoint_unknown1,
+					waypoint_unknown1 = stream.read(c_float), stream.read(c_float), stream.read(c_float), stream.read(c_float)
+					time = stream.read(c_float)
+					waypoint_unknown2 = stream.read(c_float)
+					tension = stream.read(c_float)
+					continuity = stream.read(c_float)
+					bias = stream.read(c_float)
+					waypoint_values += waypoint_unknown1, time, waypoint_unknown2, tension, continuity, bias
 
 				elif path_type == PathType.Spawner:
 					rotation = stream.read(c_float), stream.read(c_float), stream.read(c_float), stream.read(c_float)
@@ -321,12 +333,18 @@ class LUZViewer(viewer.Viewer):
 			cols = "Scene ID", "Position"
 		elif item_type == "Object":
 			cols = "Object ID", "LOT", "unknown1", "unknown2", "Position", "Rotation", "Scale"
+		elif item_type == "Spawner":
+			cols = "Path Version", "Name", "unknown1", "Behavior", "Spawned LOT", "Respawn Time", "Max to Spawn", "Num to maintain", "Object ID", "Activate on load"
+
 		else:
 			cols = ()
 		if cols:
 			self.tree.configure(columns=cols)
-			for col in cols:
+			colwidth = self.tree.winfo_width() // (len(cols)+1)
+			self.tree.column("#0", width=colwidth)
+			for i, col in enumerate(cols):
 				self.tree.heading(col, text=col, command=(lambda col: lambda: self.sort_column(col, False))(col))
+				self.tree.column(i, width=colwidth)
 		self.item_inspector.delete(1.0, END)
 		self.item_inspector.insert(END, "\n".join(self.tree.item(item, "values")))
 

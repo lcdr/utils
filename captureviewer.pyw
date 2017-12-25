@@ -156,7 +156,7 @@ class CaptureViewer(viewer.Viewer):
 
 		self.norm_parser = {}
 		for path in glob.glob(__file__+"/../packetdefinitions/*.structs"):
-			with open(path) as file:
+			with open(path, encoding="utf-8") as file:
 				self.norm_parser[os.path.splitext(os.path.basename(path))] = StructParser(file.read(), type_handlers)
 
 	def create_widgets(self):
