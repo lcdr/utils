@@ -53,7 +53,9 @@ class LUZViewer(viewer.Viewer):
 		self.tree.set_children("")
 		print("Loading", luz_path)
 		with open(luz_path, "rb") as file:
-			stream = ReadStream(file.read())
+			data = file.read()
+			luz_len = len(data)
+			stream = ReadStream(data, unlocked=True)
 
 		version = stream.read(c_uint)
 		assert version in (36, 38, 39, 40, 41), version
@@ -85,7 +87,7 @@ class LUZViewer(viewer.Viewer):
 				with open(lvl_path, "rb") as lvl:
 					print("Loading lvl", filename)
 					try:
-						self.parse_lvl(ReadStream(lvl.read()), scene)
+						self.parse_lvl(ReadStream(lvl.read(), unlocked=True), scene)
 					except Exception:
 						import traceback
 						traceback.print_exc()
@@ -115,7 +117,7 @@ class LUZViewer(viewer.Viewer):
 				self.tree.insert(scene_transition, END, text="Transition Point", values=(transition_point_scene_id, transition_point_position))
 
 		remaining_length = stream.read(c_uint)
-		assert len(stream) - stream.read_offset//8 == remaining_length
+		assert luz_len - stream.read_offset//8 == remaining_length
 		assert stream.read(c_uint) == 1
 
 		### paths
@@ -227,7 +229,9 @@ class LUZViewer(viewer.Viewer):
 						self.tree.insert(waypoint, END, text="Config", values=(config_name, config_type_and_value))
 
 	def parse_lvl(self, stream, scene):
-		if stream[0:4] == b"CHNK":
+		header = stream.read(bytes, length=4)
+		stream.read_offset = 0
+		if header == b"CHNK":
 			# newer lvl file structure
 			# chunk based
 			while not stream.all_read():
