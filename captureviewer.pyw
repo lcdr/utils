@@ -202,7 +202,7 @@ class CaptureViewer(viewer.Viewer):
 					print("Parsing creations")
 					creations = [i for i in files if "[24]" in i]
 					for packet_name in creations:
-						packet = ReadStream(capture.read(packet_name))
+						packet = ReadStream(capture.read(packet_name), unlocked=True)
 						self.parse_creation(packet_name, packet)
 
 				if self.parse_serializations.get():
@@ -333,7 +333,7 @@ class CaptureViewer(viewer.Viewer):
 			parser_output.text += "\n"+name+"\n\n"
 			parser_output.append(parser.parse(packet, {"creation":is_creation}))
 		if not packet.all_read():
-			raise IndexError("Not completely read, %i bytes unread" % (len(packet) - math.ceil(packet.read_offset / 8)))
+			raise IndexError("Not completely read, %i bytes unread" % len(packet.read_remaining()))
 
 	def parse_serialization_packet(self, packet_name, packet):
 		network_id = packet.read(c_ushort)
