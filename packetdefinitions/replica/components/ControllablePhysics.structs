@@ -17,7 +17,7 @@ if creation:
 	[float] - ???
 	[float] - ???
 [bit] - flag
-	[u32] - ???
+	[float] - ???
 	[bit] - ???
 [bit] - flag
 	[bit] - flag
