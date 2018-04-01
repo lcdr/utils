@@ -35,6 +35,7 @@ component_name[4] = "Character",
 component_name[17] = "Inventory",
 component_name[5] = "Script",
 component_name[9] = "Skill",
+component_name[19] = "Cannon",
 component_name[11] = "Item",
 component_name[60] = "BaseCombatAI",
 component_name[48] = "Stats", "Rebuild"
@@ -660,13 +661,13 @@ class CaptureViewer(viewer.Viewer):
 			if not packet.all_read():
 				raise ValueError
 		except NotImplementedError as e:
-			values = (msg_name, str(e)+"\nlen: "+str(len(packet)-10)+"\n"+"\n".join(["%s = %s" % (a, b) for a, b in param_values.items()]))
+			values = (msg_name, str(e)+"\n"+"\n".join(["%s = %s" % (a, b) for a, b in param_values.items()]))
 			tags.append("error")
 		except Exception as e:
 			print(packet_name, msg_name)
 			import traceback
 			traceback.print_exc()
-			values = ("likely not "+msg_name, "Error while parsing, likely not this message!\n"+str(e)+"\nlen: "+str(len(packet)-10)+"\n"+"\n".join(["%s = %s" % (a, b) for a, b in param_values.items()]))
+			values = ("likely not "+msg_name, "Error while parsing, likely not this message!\n"+str(e)+"\n"+"\n".join(["%s = %s" % (a, b) for a, b in param_values.items()]))
 			tags.append("error")
 		else:
 			values = (msg_name, "\n".join(["%s = %s" % (a, pprint.pformat(b)) for a, b in param_values.items()]))
