@@ -1,0 +1,38 @@
+Component 19 - Shooting Gallery (tested using LOT 1864):
+start of ScriptedActivity
+[bit] - flag
+	[u32] - count
+		[s64] - player object id
+		constant size 10 loop
+		[float] - ???
+		[float] - ???
+		[float] - ???
+		[float] - ???
+		[float] - ???
+		[float] - ???
+		[float] - ???
+		[float] - ???
+		[float] - ???
+		[float] - ???
+end of ScriptedActivity
+if creation:
+	[float] - Activity Camera position X
+	[float] - Activity Camera position Y
+	[float] - Activity Camera position Z
+	[float] - Activity Camera Lookat position X
+	[float] - Activity Camera Lookat position Y
+	[float] - Activity Camera Lookat position Z
+[bit] - flag
+	[double] - Cannon Velocity
+	[double] - Cannon Refire Rate
+	[double] - Cannon Min Distance
+	[float] - Cannon Barrel Offset X
+	[float] - Cannon Barrel Offset Y
+	[float] - Cannon Barrel Offset Z
+	[float] - Cannon Angle
+	[float] - Facing X
+	[float] - Facing Y
+	[float] - Facing Z
+	[u64] - ???
+	[float] - ???, expect == -1
+	[float] - Cannon FOV
