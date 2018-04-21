@@ -51,16 +51,19 @@ class Viewer(Frame):
 			tags = list(self.tree.item(item, "tags"))
 			tags.remove("match")
 			self.tree.item(item, tags=tags)
+		self.reattach_all()
+		if query:
+			self.filter_items(query)
+
+	def reattach_all(self):
 		for parent, detached_children in self.detached_items.items():
 			for index, item in detached_children:
 				self.tree.reattach(item, parent, index)
 		self.detached_items.clear()
-		if query:
-			self.filter_items(query)
 
 	def filter_items(self, query, parent=""):
 		all_children = self.tree.get_children(parent)
-		detached_children = [item for item in all_children if not any(query in i.lower() for i in self.tree.item(item, "values"))] # first, find all children that don't match
+		detached_children = [item for item in all_children if not any(query in i.lower() for i in self.tree.item(item, "values")) and not query in self.tree.item(item, "text").lower()] # first, find all children that don't match
 		for item in all_children:
 			if item not in detached_children:
 				tags = list(self.tree.item(item, "tags"))
