@@ -11,7 +11,7 @@ Index 2 ($+863BD0):
 
 Index 3 ($+7DC480):
 [bit] - flag
-	[bit] - ???
+	[bit] - ???, expect == False
 	[bit] - ???
 
 Index 4 ($+8A3A40):
@@ -70,15 +70,15 @@ if creation:
 	[bit] - is player landing by rocket
 		[u16-wstring] - LDF info of rocket modules
 [bit] - flag
-	[bit] - flag?, assert == False
-	[bit] - ???, assert == False
-	[u8] - ???, assert == 0
+	[bit] - PVP flag, assert == False
+	[bit] - is gm, expect == False
+	[u8] - gmlevel, expect == 0
 	[bit] - ???, assert == False
 	[u8] - ???, assert == 0
 [bit] - flag
 	[u32] - if this is 1 the character's head glows, expect in (0, 1)
-[bit] - flag (this and below was in a separate function in the code)
-	[s64] - ???
-	[u8] - ??? (count for next struct?)
+[bit] - flag
+	[s64] - guild (leader?) id, assert == 0
+	[u8-wstring] - guild name, assert == ""
 	[bit] - ???
 	[s32] - ???

@@ -2,7 +2,7 @@ Component 1 - ControllablePhysics (tested using LOT 1)
 Index 1 ($+845770):
 if creation:
 	[bit] - flag
-		[u32] - ???
+		[u32] - jetpack effect id
 		[bit] - ???
 		[bit] - ???
 	[bit] - flag

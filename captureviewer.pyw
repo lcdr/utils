@@ -1,5 +1,4 @@
 import configparser
-import math
 import glob
 import os.path
 import pickle
@@ -109,8 +108,7 @@ class CaptureObject:
 		self.entry = None
 
 class CaptureViewer(viewer.Viewer):
-	def __init__(self):
-		super().__init__()
+	def init(self):
 		config = configparser.ConfigParser()
 		config.read("captureviewer.ini")
 		try:
@@ -119,7 +117,7 @@ class CaptureViewer(viewer.Viewer):
 			messagebox.showerror("Can not open database", "Make sure db_path in the INI is set correctly.")
 			sys.exit()
 
-		self.create_parsers()
+		self._create_parsers()
 
 		with open("packetdefinitions/gm", "rb") as file:
 			self.gamemsgs = pickle.loads(zlib.decompress(file.read()))
@@ -133,13 +131,12 @@ class CaptureViewer(viewer.Viewer):
 		self.retry_with_script_component = BooleanVar(value=config["parse"]["retry_with_script_component"])
 		self.retry_with_trigger_component = BooleanVar(value=config["parse"]["retry_with_trigger_component"])
 		self.retry_with_phantom_component = BooleanVar(value=config["parse"]["retry_with_phantom_component"])
-		self.create_widgets()
 
-	def create_parsers(self):
+	def _create_parsers(self):
 		type_handlers = {}
-		type_handlers["object_id"] = self.object_id_handler
-		type_handlers["lot"] = self.lot_handler
-		type_handlers["compressed_ldf"] = self.compressed_ldf_handler
+		type_handlers["object_id"] = self._object_id_handler
+		type_handlers["lot"] = self._lot_handler
+		type_handlers["compressed_ldf"] = self._compressed_ldf_handler
 
 		with open(__file__+"/../packetdefinitions/replica/creation_header.structs", encoding="utf-8") as file:
 			self.creation_header_parser = StructParser(file.read(), type_handlers)
@@ -162,9 +159,7 @@ class CaptureViewer(viewer.Viewer):
 
 	def create_widgets(self):
 		super().create_widgets()
-		menubar = Menu()
-		menubar.add_command(label="Open", command=self.askopenfiles)
-		parse_menu = Menu(menubar)
+		parse_menu = Menu(self.menubar)
 		parse_menu.add_checkbutton(label="Parse Creations", variable=self.parse_creations)
 		parse_menu.add_checkbutton(label="Parse Serializations", variable=self.parse_serializations)
 		parse_menu.add_checkbutton(label="Parse Game Messages", variable=self.parse_game_messages)
@@ -172,69 +167,62 @@ class CaptureViewer(viewer.Viewer):
 		parse_menu.add_checkbutton(label="Retry parsing with script component if failed", variable=self.retry_with_script_component)
 		parse_menu.add_checkbutton(label="Retry parsing with trigger component if failed", variable=self.retry_with_trigger_component)
 		parse_menu.add_checkbutton(label="Retry parsing with phantom component if failed", variable=self.retry_with_phantom_component)
-		menubar.add_cascade(label="Parse", menu=parse_menu)
-		self.master.config(menu=menubar)
+		self.menubar.add_cascade(label="Parse", menu=parse_menu)
 
-		columns = "id",
-		self.tree.configure(columns=columns)
-		for col in columns:
-			self.tree.heading(col, text=col, command=(lambda col: lambda: self.sort_column(col, False))(col))
+		self.set_headings("Name", treeheading="Packet", treewidth=1200)
 		self.tree.tag_configure("unexpected", foreground="medium blue")
 		self.tree.tag_configure("assertfail", foreground="orange")
 		self.tree.tag_configure("readerror", background="medium purple")
 		self.tree.tag_configure("error", foreground="red")
 
-	def askopenfiles(self):
-		paths = filedialog.askopenfilenames(filetypes=[("Zip", "*.zip")])
-		if paths:
-			self.load_captures(paths)
+	def askopener(self):
+		return filedialog.askopenfilenames(filetypes=[("Zip", "*.zip")])
 
-	def load_captures(self, captures):
-		self.tree.set_children("")
-		self.detached_items.clear()
+	def load(self, captures) -> None:
 		self.objects = []
 		print("Loading captures, this might take a while")
 		for i, capture in enumerate(captures):
 			print("Loading", capture, "[%i/%i]" % (i+1, len(captures)))
 			with zipfile.ZipFile(capture) as capture:
+				self.set_superbar(self.parse_creations.get()+self.parse_serializations.get()+self.parse_game_messages.get()+self.parse_normal_packets.get())
 				files = [i for i in capture.namelist() if "of" not in i]
 
-				if self.parse_creations.get():
+				for _ in self.step_superbar(self.parse_creations.get(), "Parsing creations"):
 					print("Parsing creations")
 					creations = [i for i in files if "[24]" in i]
 					for packet_name in creations:
 						packet = ReadStream(capture.read(packet_name), unlocked=True)
-						self.parse_creation(packet_name, packet)
+						self._parse_creation(packet_name, packet)
 
-				if self.parse_serializations.get():
+				for _ in self.step_superbar(self.parse_serializations.get(), "Parsing serializations"):
 					print("Parsing serializations")
 					serializations = [i for i in files if "[27]" in i]
 					for packet_name in serializations:
 						packet = ReadStream(capture.read(packet_name)[1:])
-						self.parse_serialization_packet(packet_name, packet)
+						self._parse_serialization_packet(packet_name, packet)
 
-				if self.parse_game_messages.get():
+				for _ in self.step_superbar(self.parse_game_messages.get(), "Parsing game messages"):
 					print("Parsing game messages")
 					game_messages = [i for i in files if "[53-05-00-0c]" in i or "[53-04-00-05]" in i]
 					for packet_name in game_messages:
 						packet = ReadStream(capture.read(packet_name)[8:])
-						self.parse_game_message(packet_name, packet)
+						self._parse_game_message(packet_name, packet)
 
-				if self.parse_normal_packets.get():
+				for _ in self.step_superbar(self.parse_normal_packets.get(), "Parsing normal packets"):
 					print("Parsing normal packets")
 					packets = [i for i in files if "[24]" not in i and "[27]" not in i and "[53-05-00-0c]" not in i and "[53-04-00-05]" not in i]
 					for packet_name in packets:
 						packet = ReadStream(capture.read(packet_name))
-						self.parse_normal_packet(packet_name, packet)
+						self._parse_normal_packet(packet_name, packet)
 
-	def object_id_handler(self, stream):
+	def _object_id_handler(self, stream):
 		object_id = stream.read(c_int64)
 		for obj in self.objects:
 			if object_id == obj.object_id:
 				return str(object_id)+" <"+self.tree.item(obj.entry, "values")[0]+">"
 		return str(object_id)
 
-	def lot_handler(self, stream):
+	def _lot_handler(self, stream):
 		lot = stream.read(c_int)
 		if lot not in self.lot_data:
 			try:
@@ -246,7 +234,7 @@ class CaptureViewer(viewer.Viewer):
 			lot_name = self.lot_data[lot][0]
 		return "%s - %s" % (lot, lot_name)
 
-	def compressed_ldf_handler(self, stream):
+	def _compressed_ldf_handler(self, stream):
 		size = stream.read(c_uint)
 		is_compressed = stream.read(c_bool)
 		if is_compressed:
@@ -257,7 +245,7 @@ class CaptureViewer(viewer.Viewer):
 			uncompressed = stream.read(bytes, length=size)
 		return ldf.from_ldf(ReadStream(uncompressed))
 
-	def parse_creation(self, packet_name, packet, retry_with_components=[]):
+	def _parse_creation(self, packet_name, packet, retry_with_components=[]):
 		packet.skip_read(1)
 		has_network_id = packet.read(c_bit)
 		assert has_network_id
@@ -304,7 +292,7 @@ class CaptureViewer(viewer.Viewer):
 				parser_output.tags.append("error")
 			else:
 				try:
-					self.parse_serialization(packet, parser_output, parsers, is_creation=True)
+					self._parse_serialization(packet, parser_output, parsers, is_creation=True)
 				except (AssertionError, IndexError, struct.error):
 					if retry_with_components:
 						print("retry was not able to resolve parsing error")
@@ -321,14 +309,14 @@ class CaptureViewer(viewer.Viewer):
 						print("retrying with", retry_with_components, packet_name)
 						del self.lot_data[lot]
 						packet.read_offset = 0
-						self.parse_creation(packet_name, packet, retry_with_components)
+						self._parse_creation(packet_name, packet, retry_with_components)
 						return
 
 		obj = CaptureObject(network_id=network_id, object_id=object_id, lot=lot)
 		self.objects.append(obj)
 		obj.entry = self.tree.insert("", END, text=packet_name, values=(id_, parser_output.text.replace("{", "<crlbrktopen>").replace("}", "<crlbrktclose>").replace("\\", "<backslash>")), tags=parser_output.tags)
 
-	def parse_serialization(self, packet, parser_output, parsers, is_creation=False):
+	def _parse_serialization(self, packet, parser_output, parsers, is_creation=False):
 		parser_output.append(self.serialization_header_parser.parse(packet))
 		for name, parser in parsers.items():
 			parser_output.text += "\n"+name+"\n\n"
@@ -336,7 +324,7 @@ class CaptureViewer(viewer.Viewer):
 		if not packet.all_read():
 			raise IndexError("Not completely read, %i bytes unread" % len(packet.read_remaining()))
 
-	def parse_serialization_packet(self, packet_name, packet):
+	def _parse_serialization_packet(self, packet_name, packet):
 		network_id = packet.read(c_ushort)
 		obj = None
 		for i in self.objects:
@@ -356,14 +344,14 @@ class CaptureViewer(viewer.Viewer):
 
 		parser_output = ParserOutput()
 		with parser_output:
-			self.parse_serialization(packet, parser_output, parsers)
+			self._parse_serialization(packet, parser_output, parsers)
 		if error is not None:
 			parser_output.tags.append("error")
 		else:
 			error = ""
 		self.tree.insert(obj.entry, END, text=packet_name, values=(error, parser_output.text.replace("{", "<crlbrktopen>").replace("}", "<crlbrktclose>").replace("\\", "<backslash>")), tags=parser_output.tags)
 
-	def parse_game_message(self, packet_name, packet):
+	def _parse_game_message(self, packet_name, packet):
 		object_id = packet.read(c_int64)
 		for i in self.objects:
 			if i.object_id == object_id:
@@ -530,7 +518,7 @@ class CaptureViewer(viewer.Viewer):
 						if packet.read(c_bit):
 							item["unknown3"] = packet.read(c_uint)
 						if packet.read(c_bit):
-							item["extra_info"] = self.compressed_ldf_handler(packet)
+							item["extra_info"] = self._compressed_ldf_handler(packet)
 						item["unknown4"] = packet.read(c_bit)
 						items.append(item)
 					param_values["items"] = items
@@ -555,7 +543,7 @@ class CaptureViewer(viewer.Viewer):
 						if packet.read(c_bit):
 							item["unknown2"] = packet.read(c_uint)
 						if packet.read(c_bit):
-							item["extra_info"] = self.compressed_ldf_handler(packet)
+							item["extra_info"] = self._compressed_ldf_handler(packet)
 						item["unknown3"] = packet.read(c_bit)
 						items.append(item)
 					param_values["items"] = items
@@ -673,7 +661,7 @@ class CaptureViewer(viewer.Viewer):
 			values = (msg_name, "\n".join(["%s = %s" % (a, pprint.pformat(b)) for a, b in param_values.items()]))
 		self.tree.insert(entry, END, text=packet_name, values=values, tags=tags)
 
-	def parse_normal_packet(self, packet_name, packet):
+	def _parse_normal_packet(self, packet_name, packet):
 		id_ = packet_name[packet_name.index("[")+1:packet_name.index("]")]
 		if id_ not in self.norm_parser:
 			self.tree.insert("", END, text=packet_name, values=(id_, "Add the struct definition file packetdefinitions/"+id_+".structs to enable parsing of this packet."), tags=["error"])
