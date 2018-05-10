@@ -31,8 +31,8 @@ if creation:
 		[bit] - flag
 		[bit] - flag, assert == False
 		if trigger:
-			[bit] - ???, assert == False
+			[bit] - ???, expect == False
 			[bit] - flag
-				[u32] - ???
+				[float] - ???
 [bit] - flag
 	[bit] - ???

@@ -6,7 +6,7 @@ import sys
 
 import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
-from tkinter import END, Menu
+from tkinter import END
 
 import viewer
 from pyraknet.bitstream import c_bool, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort, ReadStream
@@ -27,8 +27,7 @@ class PathBehavior(enum.IntEnum):
 	Once = 2
 
 class LUZViewer(viewer.Viewer):
-	def __init__(self):
-		super().__init__()
+	def init(self):
 		config = configparser.ConfigParser()
 		config.read("luzviewer.ini")
 		try:
@@ -36,22 +35,17 @@ class LUZViewer(viewer.Viewer):
 		except:
 			messagebox.showerror("Can not open database", "Make sure db_path in the INI is set correctly.")
 			sys.exit()
-		self.create_widgets()
 
 	def create_widgets(self):
 		super().create_widgets()
-		menubar = Menu()
-		menubar.add_command(label="Open", command=self.askopenfile)
-		self.master.config(menu=menubar)
+		self.set_headings(treeheading="Type", treewidth=1200)
 
-	def askopenfile(self):
-		path = filedialog.askopenfilename(filetypes=[("LEGO Universe Zone", "*.luz")])
-		if path:
-			self.load_luz(path)
+	def askopener(self):
+		return filedialog.askopenfilename(filetypes=[("LEGO Universe Zone", "*.luz")])
 
-	def load_luz(self, luz_path):
-		self.tree.set_children("")
+	def load(self, luz_path: str) -> None:
 		print("Loading", luz_path)
+		self.set_superbar(2)
 		with open(luz_path, "rb") as file:
 			data = file.read()
 			luz_len = len(data)
@@ -76,7 +70,7 @@ class LUZViewer(viewer.Viewer):
 		else:
 			number_of_scenes = stream.read(c_ubyte)
 
-		for _ in range(number_of_scenes):
+		for _ in self.step_superbar(number_of_scenes, "Loading Scenes"):
 			filename = stream.read(bytes, length_type=c_ubyte).decode("latin1")
 			scene_id = stream.read(c_uint64)
 			scene_name = stream.read(bytes, length_type=c_ubyte).decode("latin1")
@@ -87,7 +81,7 @@ class LUZViewer(viewer.Viewer):
 				with open(lvl_path, "rb") as lvl:
 					print("Loading lvl", filename)
 					try:
-						self.parse_lvl(ReadStream(lvl.read(), unlocked=True), scene)
+						self._parse_lvl(ReadStream(lvl.read(), unlocked=True), scene)
 					except Exception:
 						import traceback
 						traceback.print_exc()
@@ -122,7 +116,8 @@ class LUZViewer(viewer.Viewer):
 
 		### paths
 		paths = self.tree.insert(zone, END, text="Paths")
-		for _ in range(stream.read(c_uint)):
+		paths_count = stream.read(c_uint)
+		for _ in self.step_superbar(paths_count, "Loading Paths"):
 			path_version = stream.read(c_uint)
 			name = stream.read(str, length_type=c_ubyte)
 			path_type = stream.read(c_uint)
@@ -228,7 +223,7 @@ class LUZViewer(viewer.Viewer):
 						config_type_and_value = stream.read(str, length_type=c_ubyte)
 						self.tree.insert(waypoint, END, text="Config", values=(config_name, config_type_and_value))
 
-	def parse_lvl(self, stream, scene):
+	def _parse_lvl(self, stream, scene):
 		header = stream.read(bytes, length=4)
 		stream.read_offset = 0
 		if header == b"CHNK":
@@ -250,15 +245,15 @@ class LUZViewer(viewer.Viewer):
 				elif chunk_type == 2000:
 					pass
 				elif chunk_type == 2001:
-					self.lvl_parse_chunk_type_2001(stream, scene)
+					self._lvl_parse_chunk_type_2001(stream, scene)
 				elif chunk_type == 2002:
 					pass
 				stream.read_offset = (start_pos + chunk_length) * 8 # go to the next CHNK
 		else:
-			self.parse_old_lvl_header(stream)
-			self.lvl_parse_chunk_type_2001(stream, scene)
+			self._parse_old_lvl_header(stream)
+			self._lvl_parse_chunk_type_2001(stream, scene)
 
-	def parse_old_lvl_header(self, stream):
+	def _parse_old_lvl_header(self, stream):
 		version = stream.read(c_ushort)
 		assert stream.read(c_ushort) == version
 		stream.read(c_ubyte)
@@ -301,7 +296,7 @@ class LUZViewer(viewer.Viewer):
 		for _ in range(stream.read(c_uint)):
 			stream.read(c_float), stream.read(c_float), stream.read(c_float)
 
-	def lvl_parse_chunk_type_2001(self, stream, scene):
+	def _lvl_parse_chunk_type_2001(self, stream, scene):
 		for _ in range(stream.read(c_uint)):
 			object_id = stream.read(c_int64) # seems like the object id, but without some bits
 			lot = stream.read(c_uint)
@@ -339,16 +334,9 @@ class LUZViewer(viewer.Viewer):
 			cols = "Object ID", "LOT", "unknown1", "unknown2", "Position", "Rotation", "Scale"
 		elif item_type == "Spawner":
 			cols = "Path Version", "Name", "unknown1", "Behavior", "Spawned LOT", "Respawn Time", "Max to Spawn", "Num to maintain", "Object ID", "Activate on load"
-
 		else:
 			cols = ()
-		if cols:
-			self.tree.configure(columns=cols)
-			colwidth = self.tree.winfo_width() // (len(cols)+1)
-			self.tree.column("#0", width=colwidth)
-			for i, col in enumerate(cols):
-				self.tree.heading(col, text=col, command=(lambda col: lambda: self.sort_column(col, False))(col))
-				self.tree.column(i, width=colwidth)
+		self.set_headings(*cols)
 		self.item_inspector.delete(1.0, END)
 		self.item_inspector.insert(END, "\n".join(self.tree.item(item, "values")))
 
