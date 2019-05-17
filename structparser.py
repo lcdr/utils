@@ -5,7 +5,7 @@ import argparse
 import re
 from collections import namedtuple
 
-from pyraknet.bitstream import c_bit, c_float, c_double, c_int8, c_uint8, c_int16, c_uint16, c_int32, c_uint32, c_int64, c_uint64, ReadStream
+from bitstream import c_bit, c_float, c_double, c_int8, c_uint8, c_int16, c_uint16, c_int32, c_uint32, c_int64, c_uint64, ReadStream
 
 VAR_CHARS = r"[^ \t\[\]]+"
 
