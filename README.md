@@ -2,7 +2,7 @@
 ## Utilities for working with LEGO Universe file formats and network packets.
 ### Created by lcdr
 ### Source repository at https://bitbucket.org/lcdr/utils/
-### License: GPL v3
+### License: AGPL v3
 
 ### Included utilities:
 
@@ -15,7 +15,7 @@
 
 ### Requirements:
 * Python 3.6
-* https://bitbucket.org/lcdr/pyraknet for some scripts
+* https://bitbucket.org/lcdr/bitstream for some scripts
 
 ### Installation
 
