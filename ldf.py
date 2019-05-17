@@ -1,4 +1,4 @@
-from pyraknet.bitstream import c_bool, c_float, c_int, c_int64, c_ubyte, c_uint, ReadStream
+from bitstream import c_bool, c_float, c_int, c_int64, c_ubyte, c_uint, ReadStream
 
 def from_ldf(ldf):
 	ldf_dict = {}

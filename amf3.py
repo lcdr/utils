@@ -1,4 +1,4 @@
-from pyraknet.bitstream import c_double, c_ubyte
+from bitstream import c_double, c_ubyte
 
 UNDEFINED_MARKER = 0
 FALSE_MARKER = 2
