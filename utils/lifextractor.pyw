@@ -7,7 +7,7 @@ import struct
 import tkinter.filedialog as filedialog
 
 import extractor
-from pyraknet.bitstream import ReadStream, UnsignedIntStruct
+from bitstream import ReadStream, UnsignedIntStruct
 
 class be_ushort(UnsignedIntStruct):
 	_struct = struct.Struct(">H")

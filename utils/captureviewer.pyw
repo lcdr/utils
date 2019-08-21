@@ -16,8 +16,8 @@ from tkinter import BooleanVar, END, Menu
 import amf3
 import viewer
 import ldf
+from bitstream import c_bit, c_bool, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort, ReadStream
 from structparser import StructParser
-from pyraknet.bitstream import c_bit, c_bool, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort, ReadStream
 
 component_name = OrderedDict()
 component_name[108] = "Component 108",

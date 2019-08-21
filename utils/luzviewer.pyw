@@ -9,7 +9,7 @@ import tkinter.messagebox as messagebox
 from tkinter import END
 
 import viewer
-from pyraknet.bitstream import c_bool, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort, ReadStream
+from bitstream import c_bool, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort, ReadStream
 
 class PathType(enum.IntEnum):
 	Movement = 0

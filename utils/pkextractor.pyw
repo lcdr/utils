@@ -6,7 +6,7 @@ import tkinter.filedialog as filedialog
 
 import decompress_sd0
 import extractor
-from pyraknet.bitstream import c_bool, c_int, c_ubyte, c_uint, ReadStream
+from bitstream import c_bool, c_int, c_ubyte, c_uint, ReadStream
 
 class PKExtractor(extractor.Extractor):
 	def askopener(self):
