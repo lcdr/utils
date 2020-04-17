@@ -1,7 +1,7 @@
 # utils
 ## Utilities for working with LEGO Universe file formats and network packets.
 ### Created by lcdr
-### Source repository at https://bitbucket.org/lcdr/utils/
+### Source repository at https://github.com/lcdr/utils/
 ### License: AGPL v3
 
 ### Included utilities:
@@ -15,8 +15,8 @@
 
 ### Requirements:
 * Python 3.6
-* https://bitbucket.org/lcdr/bitstream for some scripts
+* https://github.com/lcdr/bitstream for some scripts
 
 ### Installation
 
-`pip install hg+https://bitbucket.org/lcdr/utils` should handle the installation automatically, including installing dependencies. If you run into problems you might have to execute pip as admin, or if you have multiple Python versions installed explicitly use the pip of the compatible Python version.
+`pip install hg+https://github.com/lcdr/utils` should handle the installation automatically, including installing dependencies. If you run into problems you might have to execute pip as admin, or if you have multiple Python versions installed explicitly use the pip of the compatible Python version.
