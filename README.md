@@ -19,4 +19,4 @@
 
 ### Installation
 
-`pip install hg+https://github.com/lcdr/utils` should handle the installation automatically, including installing dependencies. If you run into problems you might have to execute pip as admin, or if you have multiple Python versions installed explicitly use the pip of the compatible Python version.
+`pip install git+https://github.com/lcdr/utils` should handle the installation automatically, including installing dependencies. If you run into problems you might have to execute pip as admin, or if you have multiple Python versions installed explicitly use the pip of the compatible Python version.
