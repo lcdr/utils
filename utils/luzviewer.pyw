@@ -232,8 +232,13 @@ class LUZViewer(viewer.Viewer):
 					for _ in range(stream.read(c_uint)):
 						config_name = stream.read(str, length_type=c_ubyte)
 						config_type_and_value = stream.read(str, length_type=c_ubyte)
-						config_type, config_value = config_type_and_value.split(":", maxsplit=1)
-						config_type = LnvType(int(config_type)).name
+						if ":" in config_type_and_value:
+							config_type, config_value = config_type_and_value.split(":", maxsplit=1)
+							config_type = LnvType(int(config_type)).name
+						else:
+							print(config_type_and_value)
+							config_type = config_type_and_value
+							config_value = config_type_and_value
 						self.tree.insert(waypoint, END, text="Config", values=(config_name, config_type, config_value))
 
 	def _parse_lvl(self, stream, scene):
