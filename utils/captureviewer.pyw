@@ -138,9 +138,9 @@ class CaptureViewer(viewer.Viewer):
 		type_handlers["lot"] = self._lot_handler
 		type_handlers["compressed_ldf"] = self._compressed_ldf_handler
 
-		with open(__file__+"/../packetdefinitions/replica/creation_header.structs", encoding="utf-8") as file:
+		with open(os.path.dirname(os.path.realpath(__file__))+"/packetdefinitions/replica/creation_header.structs", encoding="utf-8") as file:
 			self.creation_header_parser = StructParser(file.read(), type_handlers)
-		with open(__file__+"/../packetdefinitions/replica/serialization_header.structs", encoding="utf-8") as file:
+		with open(os.path.dirname(os.path.realpath(__file__))+"/packetdefinitions/replica/serialization_header.structs", encoding="utf-8") as file:
 			self.serialization_header_parser = StructParser(file.read(), type_handlers)
 
 		self.comp_parser = {}
@@ -148,12 +148,12 @@ class CaptureViewer(viewer.Viewer):
 			if indices is not None:
 				self.comp_parser[comp_id] = []
 				for index in indices:
-					with open(__file__+"/../packetdefinitions/replica/components/"+index+".structs") as file:
+					with open(os.path.dirname(os.path.realpath(__file__))+"/packetdefinitions/replica/components/"+index+".structs") as file:
 						self.comp_parser[comp_id].append(StructParser(file.read(), type_handlers))
 
 
 		self.norm_parser = {}
-		for path in glob.glob(__file__+"/../packetdefinitions/*.structs"):
+		for path in glob.glob(os.path.dirname(os.path.realpath(__file__))+"/packetdefinitions/*.structs"):
 			with open(path, encoding="utf-8") as file:
 				self.norm_parser[os.path.splitext(os.path.basename(path))] = StructParser(file.read(), type_handlers)
 
