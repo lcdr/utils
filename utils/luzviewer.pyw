@@ -11,6 +11,17 @@ from tkinter import END
 import viewer
 from bitstream import c_bool, c_float, c_int, c_int64, c_ubyte, c_uint, c_uint64, c_ushort, ReadStream
 
+class LnvType(enum.IntEnum):
+	WString = 0
+	Int32 = 1
+	Float = 3
+	Double = 4
+	Uint32 = 5
+	Boolean = 7
+	Int64 = 8
+	Uint64 = 9
+	String = 13
+
 class PathType(enum.IntEnum):
 	Movement = 0
 	MovingPlatform = 1
@@ -122,7 +133,7 @@ class LUZViewer(viewer.Viewer):
 			name = stream.read(str, length_type=c_ubyte)
 			path_type = stream.read(c_uint)
 			unknown1 = stream.read(c_uint)
-			behavior = PathBehavior(stream.read(c_uint))
+			behavior = PathBehavior(stream.read(c_uint)).name
 			values = path_version, name, unknown1, behavior
 
 			if path_type == PathType.MovingPlatform:
@@ -221,7 +232,9 @@ class LUZViewer(viewer.Viewer):
 					for _ in range(stream.read(c_uint)):
 						config_name = stream.read(str, length_type=c_ubyte)
 						config_type_and_value = stream.read(str, length_type=c_ubyte)
-						self.tree.insert(waypoint, END, text="Config", values=(config_name, config_type_and_value))
+						config_type, config_value = config_type_and_value.split(":", maxsplit=1)
+						config_type = LnvType(int(config_type)).name
+						self.tree.insert(waypoint, END, text="Config", values=(config_name, config_type, config_value))
 
 	def _parse_lvl(self, stream, scene):
 		header = stream.read(bytes, length=4)
@@ -334,6 +347,12 @@ class LUZViewer(viewer.Viewer):
 			cols = "Object ID", "LOT", "unknown1", "unknown2", "Position", "Rotation", "Scale"
 		elif item_type == "Spawner":
 			cols = "Path Version", "Name", "unknown1", "Behavior", "Spawned LOT", "Respawn Time", "Max to Spawn", "Num to maintain", "Object ID", "Activate on load"
+		elif item_type in ("MovingPlatform", "Property", "Camera", "Showcase", "Race", "Rail"):
+			cols = "Path Version", "Name", "unknown1", "Behavior"
+		elif item_type == "Waypoint":
+			cols = "Position", "Rotation"
+		elif item_type == "Config":
+			cols = "Name", "Type", "Value"
 		else:
 			cols = ()
 		self.set_headings(*cols)
