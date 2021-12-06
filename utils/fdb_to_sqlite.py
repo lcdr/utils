@@ -53,6 +53,7 @@ class convert:
 		self._read()
 		print("-"*79)
 		print("Finished converting database!")
+		print("Converted file is at: "+out_file)
 		print("-"*79)
 
 		self.sqlite.commit()
