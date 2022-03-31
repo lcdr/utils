@@ -487,7 +487,7 @@ class CaptureViewer(viewer.Viewer):
 						property["ownerName"] = packet.read(str, length_type=c_uint)
 						property["name"] = packet.read(str, length_type=c_uint)
 						property["description"] = packet.read(str, length_type=c_uint)
-						property["reputation"] = packet.read(c_uint)
+						property["reputation"] = packet.read(c_float)
 						property["isBff"] = packet.read(c_bit)
 						property["isFriend"] = packet.read(c_bit)
 						property["isModeratedApproved"] = packet.read(c_bit)
@@ -495,7 +495,8 @@ class CaptureViewer(viewer.Viewer):
 						property["isOwned"] = packet.read(c_bit)
 						property["accessType"] = packet.read(c_uint)
 						property["dateLastPublished"] = packet.read(c_uint)
-						property["performanceCost"] = packet.read(c_uint64)
+						property["performanceIndex???"] = packet.read(c_uint)
+						property["performanceCost"] = packet.read(c_float)
 
 						properties.append(property)
 
