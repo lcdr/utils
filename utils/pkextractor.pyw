@@ -6,7 +6,8 @@ import tkinter.filedialog as filedialog
 
 import decompress_sd0
 import extractor
-from bitstream import c_bool, c_int, c_ubyte, c_uint, ReadStream
+from bitstream import BitStream
+from ctypes import c_bool, c_int, c_ubyte, c_uint
 
 class PKExtractor(extractor.Extractor):
 	def askopener(self):
@@ -42,7 +43,8 @@ class PKExtractor(extractor.Extractor):
 	def _load_pki(self, path: str):
 		# unused, alternate way to get the list of pks
 		with open(path, "rb") as file:
-			stream = ReadStream(file.read())
+			stream = BitStream()
+			stream.read(file.read())
 
 		assert stream.read(c_uint) == 3
 		pack_files = []
