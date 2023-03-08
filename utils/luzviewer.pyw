@@ -325,6 +325,7 @@ class LUZViewer(viewer.Viewer):
 			scale = stream.read(c_float)
 			config_data = stream.read(str, length_type=c_uint)
 			config_data = config_data.replace("{", "<crlbrktopen>").replace("}", "<crlbrktclose>").replace("\\", "<backslash>") # for some reason these characters aren't properly escaped when sent to Tk
+			config_data = config_data + "\n" # Need newline at end incase the spawntemplate is at the end of the config data
 			assert stream.read(c_uint) == 0
 			lot_name = ""
 			if lot == 176:
