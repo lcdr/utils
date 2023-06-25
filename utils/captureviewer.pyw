@@ -267,6 +267,10 @@ class CaptureViewer(viewer.Viewer):
 				if 3 in component_types:
 					component_types.remove(3)
 
+			if 26 in component_types:
+				component_types.remove(42)
+				component_types.remove(11)
+
 			parsers = OrderedDict()
 			try:
 				component_types.sort(key=comp_ids.index)
