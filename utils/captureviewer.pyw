@@ -131,6 +131,7 @@ class CaptureViewer(viewer.Viewer):
 		self.retry_with_script_component = BooleanVar(value=config["parse"]["retry_with_script_component"])
 		self.retry_with_trigger_component = BooleanVar(value=config["parse"]["retry_with_trigger_component"])
 		self.retry_with_phantom_component = BooleanVar(value=config["parse"]["retry_with_phantom_component"])
+		self.default_capture_path = config["paths"]["default_capture_path"]
 
 	def _create_parsers(self):
 		type_handlers = {}
@@ -176,7 +177,7 @@ class CaptureViewer(viewer.Viewer):
 		self.tree.tag_configure("error", foreground="red")
 
 	def askopener(self):
-		return filedialog.askopenfilenames(filetypes=[("Zip", "*.zip")], initialdir=".")
+		return filedialog.askopenfilenames(filetypes=[("Zip", "*.zip")], initialdir=self.default_capture_path)
 
 	def load(self, captures) -> None:
 		self.objects = []
