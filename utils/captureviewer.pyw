@@ -176,7 +176,7 @@ class CaptureViewer(viewer.Viewer):
 		self.tree.tag_configure("error", foreground="red")
 
 	def askopener(self):
-		return filedialog.askopenfilenames(filetypes=[("Zip", "*.zip")])
+		return filedialog.askopenfilenames(filetypes=[("Zip", "*.zip")], initialdir=".")
 
 	def load(self, captures) -> None:
 		self.objects = []
