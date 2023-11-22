@@ -1,6 +1,6 @@
 from tkinter import BOTH, BOTTOM, END, HORIZONTAL, LEFT, Menu, NSEW, RIGHT, StringVar, Text, TOP, X, Y
 from tkinter.font import nametofont
-from tkinter.ttk import Entry, Frame, Label, PanedWindow, Progressbar, Scrollbar, Style, Treeview
+from tkinter.ttk import Entry, Frame, Label, Panedwindow, Progressbar, Scrollbar, Style, Treeview
 
 class Viewer(Frame):
 	def __init__(self):
@@ -22,14 +22,17 @@ class Viewer(Frame):
 
 	def create_widgets(self, create_inspector: bool=True) -> None:
 		self.menubar = Menu()
-		self.menubar.add_command(label="Open", command=self._askopen)
+		open_menu = Menu()
+		open_menu.add_command(label="Open", command=self._askopen, accelerator="Ctrl+O")
 		self.master.config(menu=self.menubar)
+		self.menubar.add_cascade(label="View", menu=open_menu)
 
 		find_entry = Entry(textvariable=self.find_input)
 		find_entry.pack(fill=X)
 		find_entry.bind("<Return>", self._find)
 
-		pane = PanedWindow(orient=HORIZONTAL)
+		pane = Panedwindow(orient=HORIZONTAL, width=self.winfo_screenwidth(), height=self.winfo_screenheight())
+		
 		pane.pack(fill=BOTH, expand=True)
 
 		frame = Frame()

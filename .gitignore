@@ -1,0 +1,7 @@
+
+.DS_Store
+*.pcap
+*.zip
+*.tmp
+*.pyc
+utils/captureviewer.ini
