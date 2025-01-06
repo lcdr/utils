@@ -7,7 +7,7 @@ def find_packets(capture_dir, pattern):
 	zips = [os.path.join(dirpath, f) for dirpath, dirnames, files in os.walk(capture_dir) for f in files if f.endswith('.zip')]
 	for zip_path in zips:
 		with zipfile.ZipFile(zip_path) as zip:
-			filenames = [i for i in zip.namelist() if re.search(pattern, i) is not None and "of" not in i]
+			filenames = [i for i in zip.namelist() if re.search(re.escape(pattern), i) is not None and "of" not in i]
 			for filename in filenames:
 				yield os.path.join(zip_path, filename), zip.read(filename)
 
